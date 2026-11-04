@@ -1,0 +1,1138 @@
+% ============================================================
+%  Sistema de gestión de limpieza de habitaciones
+%  Documento de especificación — compilar con pdfLaTeX (Overleaf)
+% ============================================================
+\documentclass[11pt,a4paper]{article}
+
+% ---------- Idioma y codificación ----------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-noshorthands,es-tabla]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{csquotes}
+\usepackage{amssymb}
+\usepackage{pdflscape}
+
+% ---------- Página ----------
+\usepackage[a4paper,margin=2.3cm]{geometry}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\setlength{\parskip}{0.45em}
+\setlength{\parindent}{0pt}
+\setlength{\emergencystretch}{3em}
+
+% ---------- Tablas ----------
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\renewcommand{\arraystretch}{1.25}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+% ---------- Colores y diagramas ----------
+\usepackage[table]{xcolor}
+\definecolor{acento}{HTML}{2F6FD6}
+\definecolor{gris}{HTML}{8A8A80}
+\definecolor{texto2}{HTML}{55554F}
+\definecolor{fondotabla}{HTML}{F3F2EE}
+
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,shapes.multipart,calc,babel}
+\tikzset{
+  caja/.style={draw=gris, rounded corners=4pt, line width=0.6pt,
+               minimum width=3.2cm, minimum height=1.15cm,
+               align=center, font=\small, inner sep=3pt},
+  clave/.style={caja, draw=acento, fill=acento!12, line width=1.1pt},
+  decision/.style={draw=gris, diamond, aspect=2.1, line width=0.6pt,
+               align=center, font=\small, inner sep=0.5pt},
+  entidad/.style={draw=gris, rounded corners=4pt, line width=0.6pt,
+               minimum width=3cm, minimum height=0.8cm, font=\small\bfseries},
+  flecha/.style={-{Stealth[length=2.2mm]}, draw=gris, line width=0.6pt},
+  doble/.style={{Stealth[length=2.2mm]}-{Stealth[length=2.2mm]}, draw=gris, line width=0.6pt},
+  linea/.style={draw=gris, line width=0.6pt},
+  etiq/.style={font=\footnotesize, text=texto2},
+  sub/.style={font=\footnotesize, text=texto2}
+}
+\newcommand{\sub}[1]{{\footnotesize\color{texto2}#1}}
+
+% ---------- Títulos ----------
+\titleformat{\section}{\Large\bfseries\sffamily\color{acento}}{\thesection.}{0.6em}{}
+\titleformat{\subsection}{\large\bfseries\sffamily}{\thesubsection}{0.6em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries\sffamily}{\thesubsubsection}{0.6em}{}
+\titlespacing*{\section}{0pt}{1.6em}{0.7em}
+
+% ---------- Enlaces ----------
+\usepackage[hidelinks]{hyperref}
+\usepackage{xurl}
+
+\pagestyle{plain}
+
+% ============================================================
+\begin{document}
+
+\begin{center}
+  {\sffamily\LARGE\bfseries Sistema de gestión de limpieza de habitaciones\par}
+  \vspace{0.4em}
+  {\sffamily\large\color{texto2} Aplicación web responsive para hoteles y alquileres vacacionales\par}
+\end{center}
+\vspace{0.5em}
+
+% ============================================================
+\section{El problema que resuelve}
+% ============================================================
+
+En hoteles pequeños y alquileres vacacionales, la limpieza de cada habitación se hace sin dejar evidencia verificable. Nadie puede demostrar cómo estaba la habitación al entrar, cómo quedó al salir ni cuánto tiempo tomó el trabajo.
+
+\subsection{Planteamiento del problema}
+
+\begin{itemize}[leftmargin=1.2em]
+  \item \textbf{Daños sin responsable claro.} Cuando aparece un daño, no se sabe si lo causó el huésped o el personal de limpieza. Sin foto de entrada, el empleado no tiene cómo defenderse y el dueño no tiene pruebas para reclamar al huésped o a la plataforma.
+  \item \textbf{Calidad que solo se verifica en persona.} El supervisor tiene que recorrer las habitaciones para revisar. Eso consume tiempo y no escala cuando hay varias propiedades.
+  \item \textbf{Tiempos que nadie mide.} El dueño no sabe cuánto tarda en promedio cada habitación ni cada empleado, así que no puede planear turnos ni detectar limpiezas apresuradas.
+  \item \textbf{Información dispersa.} Las fotos llegan por WhatsApp, las listas están en papel y los daños se avisan de palabra. Nada queda organizado por habitación ni por fecha.
+  \item \textbf{Barrera de idioma.} En el extranjero es común que el dueño y el equipo de limpieza hablen idiomas distintos, y las herramientas existentes suelen estar pensadas para el dueño, no para el empleado.
+\end{itemize}
+
+\subsection{Solución propuesta}
+
+Una aplicación web responsive, multi-idioma y muy simple, que convierte cada limpieza en un registro verificable: \textbf{foto de entrada}, \textbf{reporte de daños}, \textbf{tiempo medido automáticamente} y \textbf{foto de salida}. Se usa desde el navegador del celular o del computador y se puede instalar en la pantalla de inicio como aplicación web progresiva (PWA), sin pasar por tiendas de aplicaciones. La misma aplicación muestra al empleado y al supervisor una vista pensada para el celular, y al administrador un panel completo en el computador.
+
+Tres principios guían el producto:
+
+\begin{enumerate}[leftmargin=1.4em]
+  \item \textbf{Cero fricción para el empleado:} entrar con usuario y contraseña, ver sus habitaciones, tocar un botón grande y seguir pasos guiados.
+  \item \textbf{Evidencia que no se puede maquillar:} fotos tomadas solo desde la cámara de la app, con fecha y hora del servidor.
+  \item \textbf{Datos útiles para el dueño:} tiempos promedio, daños por propiedad y calidad por empleado.
+\end{enumerate}
+
+\subsection{Objetivos}
+
+\textbf{Objetivo general.} Desarrollar una aplicación web responsive que registre, mida y verifique la limpieza de habitaciones de hoteles y alquileres vacacionales, con roles de administrador, supervisor y empleado.
+
+\textbf{Objetivos específicos.}
+\begin{enumerate}[leftmargin=1.4em]
+  \item Registrar el estado de cada habitación antes y después de la limpieza mediante fotos tomadas en la app.
+  \item Medir de forma automática el tiempo neto de cada limpieza, descontando pausas.
+  \item Permitir el reporte de daños con foto, categoría y gravedad, y su seguimiento hasta resolverlos.
+  \item Ofrecer una revisión de calidad asíncrona por parte del supervisor, configurable por el administrador.
+  \item Generar reportes de tiempos y daños por habitación, empleado y propiedad.
+  \item Funcionar sin conexión y en varios idiomas (español, inglés y portugués).
+\end{enumerate}
+
+\subsection{Alcance}
+
+El producto mínimo viable (MVP) cubre el ciclo completo foto--daños--tiempo--foto con revisión, la gestión de usuarios, propiedades y asignaciones, y los reportes básicos. Quedan fuera del MVP la sincronización con calendarios de Airbnb o Booking, el inventario de insumos, el cálculo de pagos y la integración con sistemas hoteleros (PMS); se planean para versiones posteriores. Las aplicaciones nativas para Android e iOS también quedan fuera: solo se harán si la versión web se queda corta.
+
+% ============================================================
+\section{Roles y permisos}
+% ============================================================
+
+El sistema tiene tres roles fijos. El administrador ve y controla todo, el supervisor controla la calidad de su grupo y el empleado solo ve sus tareas del día.
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{Y L{2.6cm} L{3.1cm} L{2.4cm}}
+\toprule
+\textbf{Acción} & \textbf{Administrador} & \textbf{Supervisor} & \textbf{Empleado}\\
+\midrule
+Crear propiedades y habitaciones & Sí & No & No\\
+Crear usuarios (nombre + contraseña) y asignar rol & Sí & Solo empleados de su grupo (opcional) & No\\
+Restablecer contraseñas & Sí & Sí, de su grupo & No\\
+Asignar habitaciones a empleados & Sí & Sí & No\\
+Hacer una limpieza (fotos, daños, cronómetro) & Opcional & Opcional & Sí\\
+Ver fotos y tiempos & Todo & Su grupo y sus propiedades & Solo lo suyo, hoy\\
+Aprobar o rechazar una limpieza & Sí & Sí & No\\
+Gestionar daños & Sí & Sí & Solo reportar\\
+Reportes y exportar a Excel o PDF & Sí & Solo su grupo & No\\
+Configurar checklist, idioma, zona horaria, regla de revisión y borrado de fotos & Sí & No & Solo su idioma\\
+Facturación y plan & Sí & No & No\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Decisiones sobre usuarios}
+
+\begin{itemize}[leftmargin=1.2em]
+  \item \textbf{Solo nombre y contraseña.} No se usa correo, así que la recuperación de contraseña la hace el administrador o el supervisor desde el panel.
+  \item El nombre de usuario es único \textbf{dentro de la empresa}. Por eso el login pide un \textbf{código de empresa} corto la primera vez, y el navegador lo recuerda.
+  \item Contraseña de mínimo 6 caracteres, o un \textbf{PIN de 4 a 6 dígitos} para empleados, más fácil en celulares compartidos.
+  \item La sesión se cierra sola tras un tiempo de inactividad, útil si varios empleados usan el mismo teléfono.
+\end{itemize}
+
+% ============================================================
+\section{Flujo de una limpieza}
+% ============================================================
+
+El tiempo de limpieza va desde la foto de entrada hasta la foto de salida. Ningún paso se puede saltar, y la revisión del supervisor es \textbf{asíncrona}: el empleado no espera la aprobación y pasa de inmediato a la siguiente habitación.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+  \node[caja]  (abrir)     at (0,0)      {Abrir\\habitación};
+  \node[clave] (entrada)   at (4,0)      {\textbf{Foto de entrada}\\\sub{inicia cronómetro}};
+  \node[decision] (danos)  at (8.1,0)    {¿Hay\\daños?};
+  \node[caja]  (reportar)  at (12.3,0)   {Reportar daño\\\sub{foto, tipo, gravedad}};
+  \node[caja]  (limpiar)   at (8.1,-2.8) {Limpiar\\\sub{pausas con motivo}};
+  \node[clave] (salida)    at (4,-2.8)   {\textbf{Foto de salida}\\\sub{detiene cronómetro}};
+  \node[caja]  (enviada)   at (4,-5.6)   {Enviada\\\sub{revisión en paralelo}};
+  \node[caja]  (siguiente) at (0,-5.6)   {Siguiente habitación\\\sub{sin esperar}};
+  \node[decision] (aprueba) at (8.1,-5.6) {¿Supervisor\\aprueba?};
+  \node[caja]  (aprobada)  at (12.3,-5.6) {Aprobada\\\sub{o sin revisión}};
+
+  \draw[flecha] (abrir) -- (entrada);
+  \draw[flecha] (entrada) -- (danos);
+  \draw[flecha] (danos) -- node[etiq,above]{sí} (reportar);
+  \draw[flecha] (danos) -- node[etiq,right]{no} (limpiar);
+  \draw[flecha] (reportar.south) |- (limpiar.east);
+  \draw[flecha] (limpiar) -- (salida);
+  \draw[flecha] (salida) -- (enviada);
+  \draw[flecha] (enviada) -- (siguiente);
+  \draw[flecha] (enviada) -- (aprueba);
+  \draw[flecha] (aprueba) -- node[etiq,above]{sí} (aprobada);
+  \draw[flecha] (aprueba) -- node[etiq,right]{no: corregir} (limpiar);
+\end{tikzpicture}
+\caption{Flujo de una limpieza: el cronómetro corre de la foto de entrada a la foto de salida y la revisión ocurre en paralelo.}
+\end{figure}
+
+\subsection{Pasos en la app del empleado}
+
+\begin{enumerate}[leftmargin=1.4em]
+  \item \textbf{Mis habitaciones de hoy:} lista ordenada con estado (pendiente, en curso, enviada, rechazada) y prioridad (por ejemplo, \enquote{huésped llega 15:00}).
+  \item \textbf{Iniciar:} al tocar la habitación se abre la cámara. Mínimo una foto de entrada (configurable; por ejemplo tres: cama, baño y vista general). \textbf{Al guardar la primera foto arranca el cronómetro.}
+  \item \textbf{¿Hay daños?} Dos botones grandes: \emph{No} y \emph{Sí}. Si es \emph{Sí}: foto del daño, categoría (rotura, mancha, faltante, aparato que no funciona, otro), nota corta opcional por texto o voz y gravedad (leve o urgente).
+  \item \textbf{Limpiando:} cronómetro visible, checklist opcional de la habitación y botón de \textbf{pausa} con motivo (descanso, falta de insumos, huésped en la habitación).
+  \item \textbf{Terminar:} obliga a tomar las fotos de salida. \textbf{Al guardar la última foto se detiene el cronómetro} y la limpieza queda \emph{Enviada}.
+  \item \textbf{Siguiente habitación:} se desbloquea al instante; el empleado no espera la revisión.
+  \item \textbf{Revisión (en paralelo):} según la regla que configure el administrador, la limpieza entra a la cola del supervisor o se aprueba sola. Si el supervisor la rechaza, vuelve a la lista del empleado como tarea \emph{Rechazada} con su comentario; la corrección se mide como tiempo aparte.
+\end{enumerate}
+
+\subsection{Reglas de revisión}
+
+El administrador elige una de tres reglas:
+
+\begin{itemize}[leftmargin=1.2em]
+  \item \textbf{Revisar todo:} útil al empezar o en hoteles de lujo.
+  \item \textbf{Muestra:} por ejemplo, 1 de cada 5 limpiezas, al azar.
+  \item \textbf{Solo riesgo:} empleados nuevos (primeras 2 semanas), limpiezas con daños reportados y limpiezas 40\,\% más rápidas que el promedio de esa habitación.
+\end{itemize}
+
+\subsection{Estados de la habitación}
+
+Los estados se manejan en dos ejes separados, para que la revisión nunca bloquee el trabajo del empleado.
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{L{4.2cm} Y}
+\toprule
+\textbf{Eje} & \textbf{Estados}\\
+\midrule
+Trabajo del empleado & Pendiente $\rightarrow$ En curso $\rightarrow$ Enviada\\
+Revisión & Sin revisión requerida, Por revisar, Aprobada, Rechazada\\
+Para hoteles (opcional) & Lista para huésped: cuando está Enviada y no requiere revisión, o está Aprobada\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Reglas importantes}
+
+\begin{itemize}[leftmargin=1.2em]
+  \item Fotos \textbf{solo desde la cámara en vivo}: la cámara se abre dentro de la página y no permite elegir fotos de la galería, para evitar fotos viejas. Esto requiere HTTPS y que el empleado dé permiso de cámara al navegador la primera vez.
+  \item Hora y fecha \textbf{del servidor}, no del teléfono, con la zona horaria de la propiedad.
+  \item \textbf{Modo sin conexión:} la aplicación guarda fotos y tiempos en el navegador y los sube cuando vuelve la señal.
+  \item Fotos comprimidas (entre 300 y 500\,KB) para no gastar los datos del empleado.
+  \item Un empleado no puede tener dos habitaciones abiertas al mismo tiempo.
+\end{itemize}
+
+% ============================================================
+\section{Funcionalidades: MVP y versiones futuras}
+% ============================================================
+
+El MVP debe hacer bien una sola cosa ---el ciclo foto--daños--tiempo--foto con revisión--- y dejar lo demás para versiones siguientes.
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{Y L{1.3cm} L{5cm}}
+\toprule
+\textbf{Funcionalidad} & \textbf{Versión} & \textbf{Por qué}\\
+\midrule
+Login con código de empresa, usuario y contraseña o PIN & MVP & Requisito base\\
+Propiedades y habitaciones (hotel o Airbnb) & MVP & Unidad de trabajo\\
+Asignación diaria de habitaciones a empleados & MVP & Sin esto no hay lista de tareas\\
+Fotos antes y después con cronómetro automático & MVP & Corazón del producto\\
+Reporte de daños con foto, categoría y gravedad & MVP & Requisito base\\
+Revisión asíncrona del supervisor (todo, muestra o riesgo) & MVP & Cierra el ciclo de calidad sin frenar al equipo\\
+Panel web del administrador con historial y filtros & MVP & El administrador trabaja en computador\\
+Idiomas español, inglés y portugués & MVP & Mercado extranjero\\
+Modo sin conexión & MVP & Señal débil dentro de las habitaciones\\
+Reportes de tiempos y daños & MVP & Lo que le da valor al dueño\\
+\midrule
+Checklist por tipo de habitación & v2 & Útil, pero añade pasos\\
+Notificaciones push & v2 & Nuevas asignaciones, rechazos y daños urgentes\\
+Exportar a Excel o PDF & v2 & Evidencia para reclamos por daños\\
+Sincronizar calendarios de Airbnb y Booking (iCal) & v2 & Crear limpiezas automáticamente\\
+\midrule
+Inventario de insumos y amenities & v3 & \\
+Cálculo de pago por limpieza u hora & v3 & \\
+IA que compara las fotos de antes y después & v3 & Diferenciador futuro\\
+Integración con PMS (Cloudbeds, Mews, Guesty) & v3 & Para hoteles más grandes\\
+Apps nativas para Android e iOS & v3 & Solo si la web se queda corta\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+% ============================================================
+\section{Requisitos funcionales y no funcionales}
+% ============================================================
+
+Hay 18 requisitos funcionales (16 entran en el MVP) y 11 no funcionales. La prioridad sigue el método MoSCoW: \emph{Debe} entra en el MVP y \emph{Debería} entra si hay tiempo.
+
+\subsection{Requisitos funcionales}
+
+{\small
+\begin{longtable}{L{1.2cm} L{8.6cm} L{3.1cm} L{1.7cm}}
+\toprule
+\textbf{ID} & \textbf{Requisito} & \textbf{Rol} & \textbf{Prioridad}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{ID} & \textbf{Requisito} & \textbf{Rol} & \textbf{Prioridad}\\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+RF-01 & Iniciar sesión con código de empresa, nombre de usuario y contraseña o PIN & Todos & Debe\\
+RF-02 & Crear, editar y desactivar usuarios con nombre, contraseña y rol & Administrador & Debe\\
+RF-03 & Restablecer la contraseña de un usuario & Administrador, supervisor & Debe\\
+RF-04 & Crear propiedades (hotel o Airbnb) y sus habitaciones & Administrador & Debe\\
+RF-05 & Asignar habitaciones a empleados por fecha, con prioridad y hora límite & Administrador, supervisor & Debe\\
+RF-06 & Ver la lista de habitaciones asignadas del día con su estado & Empleado & Debe\\
+RF-07 & Tomar fotos de entrada solo con la cámara de la app; la primera foto inicia el cronómetro & Empleado & Debe\\
+RF-08 & Reportar si hay daños; si los hay, registrar foto, categoría, gravedad y nota & Empleado & Debe\\
+RF-09 & Pausar y reanudar el cronómetro indicando un motivo & Empleado & Debe\\
+RF-10 & Tomar fotos de salida; la última foto detiene el cronómetro y envía la limpieza & Empleado & Debe\\
+RF-11 & Decidir si una limpieza requiere revisión según la regla de la empresa (todo, muestra o riesgo) & Sistema & Debe\\
+RF-12 & Aprobar o rechazar limpiezas con comentario, sin bloquear al empleado & Supervisor, administrador & Debe\\
+RF-13 & Devolver la limpieza rechazada al empleado como tarea de corrección & Sistema & Debe\\
+RF-14 & Gestionar daños: abierto, en reparación, resuelto & Administrador, supervisor & Debe\\
+RF-15 & Ver reportes de tiempo promedio por habitación y por empleado, y de daños por propiedad & Administrador, supervisor & Debe\\
+RF-16 & Configurar idioma, zona horaria, fotos mínimas, regla de revisión y días de retención de fotos & Administrador & Debe\\
+RF-17 & Exportar reportes a Excel o PDF & Administrador & Debería\\
+RF-18 & Recibir notificaciones push de nuevas asignaciones, rechazos y daños urgentes & Todos & Debería\\
+\end{longtable}
+}
+
+\subsection{Requisitos no funcionales}
+
+{\small
+\begin{longtable}{L{1.5cm} L{2.4cm} L{10.6cm}}
+\toprule
+\textbf{ID} & \textbf{Tipo} & \textbf{Requisito medible}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{ID} & \textbf{Tipo} & \textbf{Requisito medible}\\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+RNF-01 & Usabilidad & Un empleado nuevo completa su primera limpieza sin capacitación en menos de 5 minutos; botones de al menos 48\,px\\
+RNF-02 & Idioma & Interfaz completa en español, inglés y portugués; idioma elegido por cada usuario\\
+RNF-03 & Sin conexión & Fotos, daños y tiempos se guardan sin conexión y se sincronizan solos al volver la señal\\
+RNF-04 & Rendimiento & Las pantallas del empleado cargan en menos de 2\,s con 4G; cada foto pesa menos de 500\,KB\\
+RNF-05 & Seguridad & Contraseñas con hash (bcrypt o Argon2), HTTPS, tokens que expiran y bloqueo tras 5 intentos fallidos\\
+RNF-06 & Integridad & La hora se toma del servidor; la duración se calcula en el servidor y no se puede editar desde el teléfono\\
+RNF-07 & Privacidad & Aviso de privacidad al empleado, sin GPS continuo y borrado automático de fotos según la configuración de la empresa\\
+RNF-08 & Aislamiento & Ningún usuario puede ver datos de otra empresa (multiinquilino con reglas a nivel de fila)\\
+RNF-09 & Disponibilidad & 99,5\,\% mensual; copia de seguridad diaria de la base de datos\\
+RNF-10 & Compatibilidad & Interfaz responsive desde 360\,px de ancho; Chrome y Edge en Android 9 o superior, Safari en iOS 16.4 o superior, y las dos últimas versiones de Chrome, Safari, Edge y Firefox en computador\\
+RNF-11 & Instalación & Se puede instalar como PWA en la pantalla de inicio del celular, sin tiendas de aplicaciones\\
+\end{longtable}
+}
+
+% ============================================================
+\section{Diagrama de casos de uso}
+% ============================================================
+
+El sistema tiene cuatro actores. \textbf{Usuario} reúne lo común a todos (iniciar sesión); \textbf{Empleado} y \textbf{Supervisor} heredan de él, y \textbf{Administrador} hereda de Supervisor porque puede hacer todo lo que hace el supervisor y además administra la empresa. El \textbf{Reloj del sistema} es un actor automático que ejecuta las tareas programadas.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  cu/.style={draw=gris, ellipse, line width=0.6pt, minimum width=3.3cm, minimum height=1cm,
+             align=center, font=\footnotesize, inner sep=1pt},
+  cuc/.style={cu, draw=acento, fill=acento!12, line width=1pt},
+  asoc/.style={draw=gris, line width=0.6pt},
+  gen/.style={-{Triangle[open, length=3mm, width=3mm]}, draw=gris, line width=0.6pt},
+  dep/.style={-{Straight Barb[length=2mm]}, draw=gris, dashed, line width=0.6pt},
+  estereo/.style={font=\scriptsize, text=texto2, rotate=90, fill=white, inner sep=1pt}]
+
+  % Actor: figura de palo con nombre debajo
+  \newcommand{\actor}[3]{%
+    \draw[line width=0.7pt, draw=black!75] (#2,#3+0.75) circle (0.22);
+    \draw[line width=0.7pt, draw=black!75] (#2,#3+0.53) -- (#2,#3-0.1)
+          (#2-0.38,#3+0.3) -- (#2+0.38,#3+0.3)
+          (#2,#3-0.1) -- (#2-0.3,#3-0.55) (#2,#3-0.1) -- (#2+0.3,#3-0.55);
+    \node[font=\footnotesize\bfseries, align=center] at (#2,#3-0.9) {#1};}
+
+  % Límite del sistema
+  \draw[draw=gris, line width=0.8pt, rounded corners=6pt] (2.55,0.95) rectangle (13.45,-15.6);
+  \node[font=\small\bfseries\sffamily, text=texto2] at (8,0.6) {Sistema de gestión de limpieza};
+
+  % Casos de uso
+  \node[cu]  (u1)  at (4.4,-0.6)  {Iniciar sesión};
+  \node[cu]  (u2)  at (4.4,-3.0)  {Ver habitaciones\\del día};
+  \node[cuc] (u3)  at (4.4,-5.4)  {Realizar limpieza};
+  \node[cu]  (u4)  at (8.0,-7.4)  {Tomar foto\\de entrada};
+  \node[cu]  (u5)  at (8.0,-9.2)  {Reportar daño};
+  \node[cu]  (u6)  at (8.0,-11.0) {Pausar limpieza};
+  \node[cu]  (u7)  at (8.0,-12.8) {Tomar foto\\de salida};
+  \node[cu]  (u15) at (4.4,-14.6) {Borrar fotos\\vencidas};
+  \node[cu]  (u8)  at (11.6,-0.6) {Asignar\\habitaciones};
+  \node[cu]  (u9)  at (11.6,-2.6) {Revisar limpieza};
+  \node[cu]  (u10) at (11.6,-4.6) {Gestionar daños};
+  \node[cu]  (u11) at (11.6,-6.6) {Ver reportes};
+  \node[cu]  (u12) at (11.6,-9.8) {Gestionar usuarios};
+  \node[cu]  (u13) at (11.6,-11.8) {Gestionar propiedades\\y habitaciones};
+  \node[cu]  (u14) at (11.6,-13.8) {Configurar empresa};
+
+  % Actores
+  \actor{Usuario}{1.15}{-0.9}
+  \actor{Empleado}{1.15}{-4.4}
+  \actor{Reloj del\\sistema}{1.15}{-14.6}
+  \actor{Supervisor}{14.85}{-3.8}
+  \actor{Administrador}{14.85}{-11.8}
+
+  % Asociaciones actor - caso de uso
+  \draw[asoc] (1.6,-0.6) -- (u1.west);
+  \draw[asoc] (1.6,-4.1) -- (u2.west);
+  \draw[asoc] (1.6,-4.1) -- (u3.west);
+  \draw[asoc] (1.6,-14.3) -- (u15.west);
+  \foreach \u in {u8,u9,u10,u11} \draw[asoc] (14.4,-3.5) -- (\u.east);
+  \foreach \u in {u12,u13,u14} \draw[asoc] (14.4,-11.5) -- (\u.east);
+
+  % Generalizaciones entre actores
+  \draw[gen] (1.15,-3.5) -- (1.15,-2.1);
+  \draw[gen] (14.85,-2.85) -- (14.85,1.35) -- (1.15,1.35) -- (1.15,0.1);
+  \draw[gen] (14.85,-10.85) -- (14.85,-5.15);
+
+  % Include / extend
+  \draw[dep] (5.6,-5.84) |- node[estereo, pos=0.25]{«include»} (u4.west);
+  \draw[dep] (u5.west) -| node[estereo, pos=0.75]{«extend»} (5.0,-5.88);
+  \draw[dep] (u6.west) -| node[estereo, pos=0.75]{«extend»} (4.4,-5.9);
+  \draw[dep] (3.8,-5.88) |- node[estereo, pos=0.25]{«include»} (u7.west);
+\end{tikzpicture}
+\caption{Diagrama de casos de uso.}
+\end{figure}
+
+\textbf{Realizar limpieza} siempre incluye tomar las fotos de entrada y de salida (\emph{include}); reportar un daño y pausar la limpieza son opcionales y solo ocurren cuando hacen falta (\emph{extend}).
+
+\subsection{Descripción de los casos de uso}
+
+{\small
+\setlength{\tabcolsep}{4pt}
+\begin{longtable}{L{1.1cm} L{3.4cm} L{2.4cm} L{7.6cm}}
+\toprule
+\textbf{ID} & \textbf{Caso de uso} & \textbf{Actor} & \textbf{Descripción}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{ID} & \textbf{Caso de uso} & \textbf{Actor} & \textbf{Descripción}\\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+CU-01 & Iniciar sesión & Usuario & Entra con código de empresa, nombre de usuario y contraseña o PIN; tras 5 intentos fallidos la cuenta se bloquea 15 minutos.\\
+CU-02 & Ver habitaciones del día & Empleado & Consulta sus habitaciones asignadas, ordenadas por prioridad y hora límite, con su estado.\\
+CU-03 & Realizar limpieza & Empleado & Abre una habitación, limpia y la envía. El tiempo neto lo calcula el servidor.\\
+CU-04 & Tomar foto de entrada & Empleado & Toma con la cámara en vivo las fotos mínimas de entrada; la primera inicia el cronómetro.\\
+CU-05 & Reportar daño & Empleado & Si encuentra un daño, registra foto, categoría, gravedad y nota opcional.\\
+CU-06 & Pausar limpieza & Empleado & Detiene el cronómetro indicando un motivo y lo reanuda después.\\
+CU-07 & Tomar foto de salida & Empleado & Toma las fotos de salida; la última detiene el cronómetro, deja la limpieza enviada y desbloquea la siguiente habitación.\\
+CU-08 & Asignar habitaciones & Supervisor & Asigna habitaciones a empleados para una fecha, con prioridad y hora límite.\\
+CU-09 & Revisar limpieza & Supervisor & Compara fotos de entrada y salida, tiempo y daños, y aprueba o rechaza con comentario. Un rechazo crea una tarea de corrección.\\
+CU-10 & Gestionar daños & Supervisor & Cambia el estado de un daño (abierto, en reparación, resuelto); cada cambio queda en el historial.\\
+CU-11 & Ver reportes & Supervisor & Consulta tiempos promedio por habitación y por empleado, y daños por propiedad, con filtros.\\
+CU-12 & Gestionar usuarios & Administrador & Crea, edita y desactiva usuarios con nombre, contraseña y rol; restablece contraseñas.\\
+CU-13 & Gestionar propiedades y habitaciones & Administrador & Registra propiedades (hotel o Airbnb) y sus habitaciones con las fotos mínimas.\\
+CU-14 & Configurar empresa & Administrador & Define idioma, zona horaria, regla de revisión y días de retención de fotos.\\
+CU-15 & Borrar fotos vencidas & Reloj del sistema & Cada día borra las fotos que superan la retención configurada, salvo las de daños abiertos.\\
+\end{longtable}
+}
+
+% ============================================================
+\section{Historias de usuario}
+% ============================================================
+
+Cada historia sigue el formato \enquote{Como \ldots{} quiero \ldots{} para \ldots} y lleva criterios de aceptación que se pueden probar. Los puntos de esfuerzo (1, 2, 3, 5, 8) son una estimación inicial.
+
+{\small
+\setlength{\tabcolsep}{4pt}
+\begin{longtable}{L{1.1cm} L{5.5cm} L{5.9cm} L{1.4cm} L{0.8cm}}
+\toprule
+\textbf{ID} & \textbf{Historia} & \textbf{Criterios de aceptación} & \textbf{Req.} & \textbf{Pts.}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{ID} & \textbf{Historia} & \textbf{Criterios de aceptación} & \textbf{Req.} & \textbf{Pts.}\\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+HU-01 & Como \textbf{usuario}, quiero entrar con código de empresa, usuario y contraseña para usar la app sin correo & El código se recuerda en el navegador; 5 intentos fallidos bloquean 15 minutos; mensaje de error en mi idioma & RF-01 & 3\\
+HU-02 & Como \textbf{administrador}, quiero crear usuarios solo con nombre, contraseña y rol para dar de alta al personal rápido & Usuario único dentro de la empresa; contraseña de mínimo 6 caracteres o PIN de 4 a 6 dígitos; puedo desactivar sin borrar el historial & RF-02, RF-03 & 3\\
+HU-03 & Como \textbf{administrador}, quiero registrar propiedades y habitaciones para organizar el trabajo & Tipo hotel o Airbnb; zona horaria por propiedad; fotos mínimas configurables por habitación & RF-04 & 3\\
+HU-04 & Como \textbf{supervisor}, quiero asignar habitaciones a empleados por día para repartir la carga & Puedo marcar prioridad y hora límite; no puedo asignar a empleados de otra empresa & RF-05 & 5\\
+HU-05 & Como \textbf{empleado}, quiero ver mis habitaciones de hoy ordenadas para saber qué hacer primero & Orden por prioridad y hora límite; estado visible con color e icono & RF-06 & 2\\
+HU-06 & Como \textbf{empleado}, quiero tomar la foto de entrada para dejar constancia de cómo encontré la habitación & Solo cámara, no galería; la primera foto inicia el tiempo; no se puede seguir sin el mínimo de fotos & RF-07 & 5\\
+HU-07 & Como \textbf{empleado}, quiero reportar daños con foto para que no me culpen por ellos & Botones Sí y No; si es Sí, foto obligatoria, categoría y gravedad; nota por texto o voz opcional & RF-08 & 5\\
+HU-08 & Como \textbf{empleado}, quiero pausar el tiempo con un motivo para que mis tiempos sean justos & Motivo obligatorio de una lista; el tiempo pausado no cuenta en la duración neta & RF-09 & 2\\
+HU-09 & Como \textbf{empleado}, quiero tomar la foto de salida y pasar a la siguiente habitación sin esperar & La última foto detiene el tiempo; la habitación queda Enviada; la siguiente se desbloquea al instante & RF-10 & 3\\
+HU-10 & Como \textbf{empleado}, quiero trabajar sin internet para no detenerme en habitaciones sin señal & Todo se guarda localmente; un indicador muestra cuántos envíos faltan; se sube solo al volver la señal & RNF-03 & 8\\
+HU-11 & Como \textbf{supervisor}, quiero una cola de limpiezas por revisar para aprobar o rechazar desde el celular & Veo las fotos de entrada y salida lado a lado, el tiempo y los daños; rechazar exige comentario & RF-11, RF-12 & 5\\
+HU-12 & Como \textbf{empleado}, quiero recibir el rechazo como tarea para corregir lo que faltó & Aparece arriba en mi lista con el comentario; la corrección se mide aparte & RF-13 & 3\\
+HU-13 & Como \textbf{administrador}, quiero elegir la regla de revisión para no saturar al supervisor & Opciones: todo, muestra (1 de cada N) o solo riesgo; aplica a las limpiezas nuevas & RF-11, RF-16 & 3\\
+HU-14 & Como \textbf{supervisor}, quiero gestionar los daños reportados para que se reparen & Estados abierto, en reparación y resuelto; historial de cambios con fecha y usuario & RF-14 & 3\\
+HU-15 & Como \textbf{administrador}, quiero ver reportes de tiempos y daños para tomar decisiones & Filtros por fecha, propiedad y empleado; tiempo promedio y daños por propiedad & RF-15 & 5\\
+HU-16 & Como \textbf{administrador}, quiero configurar idioma, zona horaria y borrado de fotos para no guardarlas más tiempo del necesario & Retención en días; las fotos de daños abiertos no se borran & RF-16, RNF-07 & 3\\
+\end{longtable}
+}
+
+% ============================================================
+\section{Diagrama de clases}
+% ============================================================
+
+El diagrama de clases muestra el modelo del dominio tal como se implementa en el backend de Python (modelos de SQLAlchemy y su lógica). Cada clase tiene sus atributos con el tipo de Python y sus métodos principales. Los usuarios se modelan con herencia: \textbf{Usuario} es una clase abstracta y \textbf{Empleado}, \textbf{Supervisor} y \textbf{Administrador} heredan de ella (en la base de datos se guardan en una sola tabla con la columna \texttt{rol}).
+
+\begin{landscape}
+\begin{figure}[p]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[x=1.06cm,
+  clase/.style={rectangle split, rectangle split parts=3, draw=gris, line width=0.6pt,
+     text width=4.7cm, execute at begin node={\hyphenpenalty=10000\exhyphenpenalty=10000}, font=\scriptsize, inner sep=3pt, anchor=north,
+     rectangle split part fill={acento!14,white,white}, rectangle split part align={center,left,left}},
+  clasec/.style={clase, draw=acento, line width=1.1pt},
+  enum/.style={rectangle split, rectangle split parts=2, draw=gris, line width=0.6pt,
+     text width=4.7cm, execute at begin node={\hyphenpenalty=10000\exhyphenpenalty=10000}, font=\scriptsize, inner sep=3pt, anchor=north,
+     rectangle split part fill={black!5,white}, rectangle split part align={center,left}},
+  asoc/.style={draw=gris, line width=0.6pt},
+  comp/.style={{Diamond[length=3.2mm, width=2.2mm]}-, draw=gris, line width=0.6pt},
+  gen/.style={-{Triangle[open, length=3mm, width=3mm]}, draw=gris, line width=0.6pt},
+  mult/.style={font=\scriptsize\bfseries, text=acento, inner sep=1.5pt},
+  rol/.style={font=\scriptsize\itshape, text=texto2, inner sep=1.5pt}]
+
+  % ----- Fila A -----
+  \node[clase] (empresa) at (2.4,0) {\textbf{\small Empresa}
+    \nodepart{two}- id: UUID\\- nombre: str\\- codigo: str\\- idioma: str\\- regla\_revision: ReglaRevision\\- muestra\_n: int\\- retencion\_fotos\_dias: int
+    \nodepart{three}+ requiere\_revision(l: Limpieza): bool};
+  \node[clase] (empleado) at (8.0,0) {\textbf{\small Empleado}
+    \nodepart{two}\vphantom{x}
+    \nodepart{three}+ habitaciones\_del\_dia(fecha)\\+ iniciar\_limpieza(a: Asignacion)};
+  \node[clase] (asignacion) at (13.6,0) {\textbf{\small Asignacion}
+    \nodepart{two}- id: UUID\\- fecha: date\\- prioridad: int\\- hora\_limite: time
+    \nodepart{three}+ vencida(): bool};
+  \node[clase] (habitacion) at (19.2,0) {\textbf{\small Habitacion}
+    \nodepart{two}- id: UUID\\- nombre: str\\- tipo: str\\- fotos\_min\_entrada: int\\- fotos\_min\_salida: int\\- activa: bool
+    \nodepart{three}+ tiempo\_promedio(): int};
+  \node[clase] (propiedad) at (24.8,0) {\textbf{\small Propiedad}
+    \nodepart{two}- id: UUID\\- nombre: str\\- tipo: TipoPropiedad\\- direccion: str\\- zona\_horaria: str
+    \nodepart{three}+ habitaciones\_activas(): list};
+
+  % ----- Fila B -----
+  \node[clase] (usuario) at (2.4,-4.6) {\textbf{\small\itshape Usuario}\\{\tiny\{abstracta\}}
+    \nodepart{two}- id: UUID\\- nombre\_usuario: str\\- hash\_clave: str\\- tipo\_clave: TipoClave\\- idioma: str\\- activo: bool\\- intentos\_fallidos: int\\- bloqueado\_hasta: datetime
+    \nodepart{three}+ verificar\_clave(clave: str): bool\\+ registrar\_intento\_fallido()\\+ cambiar\_clave(nueva: str)};
+  \node[clase] (admin) at (8.0,-4.6) {\textbf{\small Administrador}
+    \nodepart{two}\vphantom{x}
+    \nodepart{three}+ crear\_usuario(nombre, clave, rol)\\+ configurar\_empresa(datos)\\+ crear\_propiedad(datos)};
+  \node[clasec] (limpieza) at (13.6,-4.6) {\textbf{\small Limpieza}
+    \nodepart{two}- id: UUID\\- tipo: TipoLimpieza\\- inicio: datetime\\- fin: datetime\\- duracion\_neta\_seg: int\\- estado\_trabajo: EstadoTrabajo\\- estado\_revision: EstadoRevision
+    \nodepart{three}+ iniciar(foto: Foto)\\+ pausar(motivo: str)\\+ reanudar()\\+ finalizar(fotos: list[Foto])\\+ calcular\_duracion(): int\\+ crear\_correccion(): Limpieza};
+  \node[clase] (foto) at (19.2,-4.6) {\textbf{\small Foto}
+    \nodepart{two}- id: UUID\\- momento: MomentoFoto\\- url: str\\- tomada\_en: datetime\\- tamano\_kb: int
+    \nodepart{three}+ url\_firmada(): str};
+  \node[clase] (pausa) at (24.8,-4.6) {\textbf{\small Pausa}
+    \nodepart{two}- id: UUID\\- motivo: str\\- inicio: datetime\\- fin: datetime
+    \nodepart{three}+ duracion(): int};
+
+  % ----- Fila C -----
+  \node[enum] (e1) at (2.4,-11.4) {\textbf{\small EstadoRevision}\\{\tiny«enumeration»}
+    \nodepart{two}NO\_REQUERIDA\\PENDIENTE\\APROBADA\\RECHAZADA};
+  \node[enum] (e2) at (2.4,-14.0) {\textbf{\small ReglaRevision}\\{\tiny«enumeration»}
+    \nodepart{two}TODO\\MUESTRA\\RIESGO};
+  \node[clase] (supervisor) at (8.0,-11.4) {\textbf{\small Supervisor}
+    \nodepart{two}\vphantom{x}
+    \nodepart{three}+ asignar(hab, empleado, fecha)\\+ revisar(l, aprobada, comentario)\\+ restablecer\_clave(u: Usuario)};
+  \node[clase] (revision) at (13.6,-11.4) {\textbf{\small Revision}
+    \nodepart{two}- id: UUID\\- resultado: Resultado\\- comentario: str\\- revisado\_en: datetime
+    \nodepart{three}+ es\_rechazo(): bool};
+  \node[clase] (dano) at (19.2,-11.4) {\textbf{\small Dano}
+    \nodepart{two}- id: UUID\\- categoria: str\\- gravedad: Gravedad\\- nota: str\\- estado: EstadoDano
+    \nodepart{three}+ cambiar\_estado(nuevo, usuario)};
+  \node[clase] (historial) at (24.8,-11.4) {\textbf{\small DanoHistorial}
+    \nodepart{two}- id: UUID\\- estado\_anterior: EstadoDano\\- estado\_nuevo: EstadoDano\\- cambiado\_por: Usuario\\- cambiado\_en: datetime
+    \nodepart{three}\vphantom{x}};
+
+  % ----- Herencia de usuarios -----
+  \draw[asoc] (empleado.west |- 0,-0.9) -- (5.2,-0.9) -- (5.2,-12.2) -- (supervisor.west |- 0,-12.2);
+  \draw[asoc] (admin.west |- 0,-5.5) -- (5.2,-5.5);
+  \draw[gen] (5.2,-6.4) -- (usuario.east |- 0,-6.4);
+
+  % ----- Asociaciones -----
+  % Empresa - Usuario (composición)
+  \draw[comp] (empresa.south) -- (usuario.north);
+  \node[mult, right] at ($(empresa.south)+(0,-0.25)$) {1};
+  \node[mult, right] at ($(usuario.north)+(0,0.25)$) {1..*};
+  % Empresa - Propiedad (composición, por arriba)
+  \draw[comp] (empresa.north) -- (2.4,0.9) -- (24.8,0.9) -- (propiedad.north);
+  \node[mult, right] at ($(empresa.north)+(0,0.25)$) {1};
+  \node[mult, right] at ($(propiedad.north)+(0,0.25)$) {*};
+  % Propiedad - Habitacion (composición)
+  \draw[comp] (propiedad.west |- 0,-1.1) -- (habitacion.east |- 0,-1.1);
+  \node[mult, above left]  at (propiedad.west |- 0,-1.1) {1};
+  \node[mult, above right] at (habitacion.east |- 0,-1.1) {1..*};
+  % Habitacion - Asignacion
+  \draw[asoc] (habitacion.west |- 0,-1.1) -- (asignacion.east |- 0,-1.1);
+  \node[mult, above left]  at (habitacion.west |- 0,-1.1) {1};
+  \node[mult, above right] at (asignacion.east |- 0,-1.1) {*};
+  % Empleado - Asignacion
+  \draw[asoc] (empleado.east |- 0,-0.9) -- (asignacion.west |- 0,-0.9);
+  \node[mult, above right] at (empleado.east |- 0,-0.9) {1};
+  \node[mult, above left]  at (asignacion.west |- 0,-0.9) {*};
+  \node[rol, below] at ($(empleado.east |- 0,-0.9)!0.5!(asignacion.west |- 0,-0.9)$) {realiza};
+  % Asignacion - Limpieza (composición)
+  \draw[comp] (asignacion.south) -- (limpieza.north);
+  \node[mult, right] at ($(asignacion.south)+(0,-0.25)$) {1};
+  \node[mult, right] at ($(limpieza.north)+(0,0.25)$) {1..*};
+  % Limpieza - Foto (composición)
+  \draw[comp] (limpieza.east |- 0,-5.6) -- (foto.west |- 0,-5.6);
+  \node[mult, above right] at (limpieza.east |- 0,-5.6) {1};
+  \node[mult, above left]  at (foto.west |- 0,-5.6) {1..*};
+  % Limpieza - Pausa (composición, por arriba de Foto)
+  \draw[comp] (14.7,0 |- limpieza.north) -- (14.7,-4.1) -- (24.8,-4.1) -- (pausa.north);
+  \node[mult, right] at ($(14.7,0 |- limpieza.north)+(0,0.25)$) {1};
+  \node[mult, right] at ($(pausa.north)+(0,0.25)$) {*};
+  % Limpieza - Revision
+  \draw[asoc] (limpieza.south) -- (revision.north);
+  \node[mult, right] at ($(limpieza.south)+(0,-0.25)$) {1};
+  \node[mult, right] at ($(revision.north)+(0,0.25)$) {0..1};
+  % Supervisor - Revision
+  \draw[asoc] (supervisor.east |- 0,-12.2) -- (revision.west |- 0,-12.2);
+  \node[mult, above right] at (supervisor.east |- 0,-12.2) {1};
+  \node[mult, above left]  at (revision.west |- 0,-12.2) {*};
+  \node[rol, below] at ($(supervisor.east |- 0,-12.2)!0.5!(revision.west |- 0,-12.2)$) {revisa};
+  % Limpieza - Dano
+  \draw[asoc] (limpieza.east |- 0,-8.2) -- (16.4,-8.2) -- (16.4,-12.0) -- (dano.west |- 0,-12.0);
+  \node[mult, above right] at (limpieza.east |- 0,-8.2) {1};
+  \node[mult, above left]  at (dano.west |- 0,-12.0) {*};
+  % Dano - Foto
+  \draw[asoc] (dano.north) -- (foto.south);
+  \node[mult, right] at ($(dano.north)+(0,0.25)$) {1};
+  \node[mult, right] at ($(foto.south)+(0,-0.25)$) {1..*};
+  % Dano - DanoHistorial (composición)
+  \draw[comp] (dano.east |- 0,-12.0) -- (historial.west |- 0,-12.0);
+  \node[mult, above right] at (dano.east |- 0,-12.0) {1};
+  \node[mult, above left]  at (historial.west |- 0,-12.0) {*};
+  % Supervisor - Propiedad (muchos a muchos, por abajo y por la derecha)
+  \draw[asoc] (supervisor.south) -- (8.0,-16.2) -- (27.6,-16.2) -- (27.6,-1.1) -- (propiedad.east |- 0,-1.1);
+  \node[mult, right] at ($(supervisor.south)+(0,-0.25)$) {*};
+  \node[mult, above right] at (propiedad.east |- 0,-1.1) {*};
+  \node[rol, above] at (18,-16.2) {supervisa};
+  % Limpieza - Limpieza (corrección)
+  \draw[asoc] (limpieza.west |- 0,-8.0) -- (10.9,-8.0) -- (10.9,-8.6) -- (limpieza.west |- 0,-8.6);
+  \node[rol, left] at (10.9,-8.3) {corrige};
+  \node[mult, above left] at (limpieza.west |- 0,-8.0) {0..1};
+  \node[mult, below left] at (limpieza.west |- 0,-8.6) {*};
+\end{tikzpicture}}
+\caption{Diagrama de clases del dominio.}
+\end{figure}
+\end{landscape}
+
+Otras enumeraciones del modelo son \texttt{TipoClave} (contraseña, PIN), \texttt{TipoPropiedad} (hotel, Airbnb), \texttt{TipoLimpieza} (normal, corrección), \texttt{EstadoTrabajo} (en curso, enviada), \texttt{MomentoFoto} (entrada, salida, daño), \texttt{Gravedad} (leve, urgente), \texttt{EstadoDano} (abierto, en reparación, resuelto) y \texttt{Resultado} (aprobada, rechazada). El rombo relleno indica composición: por ejemplo, si se borra una limpieza también se borran sus fotos y pausas.
+
+% ============================================================
+\section{Modelo relacional}
+% ============================================================
+
+El modelo tiene 12 tablas en PostgreSQL. \textbf{Limpieza} es el centro, porque allí se registran los tiempos, las fotos, los daños y la revisión. La figura~\ref{fig:datos}, en una página horizontal, muestra cada tabla con sus columnas y tipos de datos. \textbf{PK} es la clave primaria, \textbf{FK} la clave foránea y \textbf{UQ} un valor único. Cada flecha sale de la tabla que tiene la clave foránea y apunta a la tabla que referencia; los números azules indican la cardinalidad en cada extremo (1, N o 0..1). Los identificadores son \texttt{UUID}, las fechas con hora usan \texttt{TIMESTAMPTZ} y las longitudes de cada \texttt{VARCHAR} se fijan en las migraciones.
+
+Una empresa tiene usuarios y propiedades; cada habitación recibe asignaciones y cada asignación genera una o más limpiezas (la de corrección apunta a la original mediante \texttt{limpieza\_origen\_id}). El usuario aparece en varios papeles: empleado asignado, supervisor que revisa, supervisor de propiedades y autor de los cambios de estado de los daños.
+
+\begin{landscape}
+\begin{figure}[p]
+\centering
+\newcommand{\tb}[2]{\textbf{\small #1}\nodepart{two}{\renewcommand{\arraystretch}{1}\setlength{\tabcolsep}{2pt}\begin{tabular}{@{}l l >{\color{texto2}\tiny}l@{}}#2\end{tabular}}}
+\newcommand{\PK}{\textbf{\color{acento}PK}}
+\newcommand{\FK}{\textbf{\color{texto2}FK}}
+\newcommand{\cl}[1]{\textsf{#1}}
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[x=1.2cm,
+  tab/.style={rectangle split, rectangle split parts=2, draw=gris, line width=0.6pt,
+     text width=5.35cm, font=\scriptsize, inner sep=3pt, anchor=north,
+     rectangle split part fill={acento!14,white}, rectangle split part align={center,left}},
+  tabc/.style={tab, draw=acento, line width=1.1pt},
+  fk/.style={{Stealth[length=2.2mm]}-, draw=gris, line width=0.6pt},
+  rol/.style={font=\scriptsize\itshape, text=texto2, inner sep=1.5pt},
+  card/.style={font=\scriptsize\bfseries, text=acento, inner sep=1.5pt}]
+
+  % ----- Fila A -----
+  \node[tab] (usuario) at (2,0) {\tb{usuario}{%
+    \PK & \cl{id} & UUID\\ \FK & \cl{empresa\_id} & UUID\\ & \cl{nombre\_usuario} & VARCHAR\\ & \cl{hash\_clave} & VARCHAR\\ & \cl{tipo\_clave} & VARCHAR\\ & \cl{rol} & VARCHAR\\ & \cl{idioma} & VARCHAR\\ & \cl{activo} & BOOLEAN\\ & \cl{intentos\_fallidos} & SMALLINT\\ & \cl{bloqueado\_hasta} & TIMESTAMPTZ\\ & \cl{creado\_en} & TIMESTAMPTZ}};
+  \node[tab] (empresa) at (7.25,0) {\tb{empresa}{%
+    \PK & \cl{id} & UUID\\ & \cl{nombre} & VARCHAR\\ UQ & \cl{codigo} & VARCHAR\\ & \cl{idioma} & VARCHAR\\ & \cl{plan} & VARCHAR\\ & \cl{regla\_revision} & VARCHAR\\ & \cl{muestra\_n} & SMALLINT\\ & \cl{retencion\_fotos\_dias} & SMALLINT\\ & \cl{creado\_en} & TIMESTAMPTZ}};
+  \node[tab] (propiedad) at (12.5,0) {\tb{propiedad}{%
+    \PK & \cl{id} & UUID\\ \FK & \cl{empresa\_id} & UUID\\ & \cl{nombre} & VARCHAR\\ & \cl{tipo} & VARCHAR\\ & \cl{direccion} & TEXT\\ & \cl{zona\_horaria} & VARCHAR}};
+  \node[tab] (habitacion) at (17.75,0) {\tb{habitacion}{%
+    \PK & \cl{id} & UUID\\ \FK & \cl{propiedad\_id} & UUID\\ & \cl{nombre} & VARCHAR\\ & \cl{tipo} & VARCHAR\\ & \cl{fotos\_min\_entrada} & SMALLINT\\ & \cl{fotos\_min\_salida} & SMALLINT\\ & \cl{activa} & BOOLEAN}};
+
+  % ----- Fila B -----
+  \node[tab] (sp) at (7.25,-5.1) {\tb{supervisor\_propiedad}{%
+    \PK\,\FK & \cl{usuario\_id} & UUID\\ \PK\,\FK & \cl{propiedad\_id} & UUID}};
+  \node[tab] (asignacion) at (17.75,-5.1) {\tb{asignacion}{%
+    \PK & \cl{id} & UUID\\ \FK & \cl{habitacion\_id} & UUID\\ \FK & \cl{empleado\_id} & UUID\\ \FK & \cl{asignado\_por} & UUID\\ & \cl{fecha} & DATE\\ & \cl{prioridad} & SMALLINT\\ & \cl{hora\_limite} & TIME}};
+  \node[tab] (revision) at (23,-5.1) {\tb{revision}{%
+    \PK & \cl{id} & UUID\\ \FK\,UQ & \cl{limpieza\_id} & UUID\\ \FK & \cl{supervisor\_id} & UUID\\ & \cl{resultado} & VARCHAR\\ & \cl{comentario} & TEXT\\ & \cl{revisado\_en} & TIMESTAMPTZ}};
+
+  % ----- Fila C -----
+  \node[tab] (historial) at (2,-9.6) {\tb{dano\_historial}{%
+    \PK & \cl{id} & UUID\\ \FK & \cl{dano\_id} & UUID\\ \FK & \cl{usuario\_id} & UUID\\ & \cl{estado\_anterior} & VARCHAR\\ & \cl{estado\_nuevo} & VARCHAR\\ & \cl{cambiado\_en} & TIMESTAMPTZ}};
+  \node[tab] (dano) at (7.25,-9.6) {\tb{dano}{%
+    \PK & \cl{id} & UUID\\ \FK & \cl{limpieza\_id} & UUID\\ & \cl{categoria} & VARCHAR\\ & \cl{gravedad} & VARCHAR\\ & \cl{nota} & TEXT\\ & \cl{estado} & VARCHAR\\ & \cl{creado\_en} & TIMESTAMPTZ}};
+  \node[tab] (foto) at (12.5,-9.6) {\tb{foto}{%
+    \PK & \cl{id} & UUID\\ \FK & \cl{limpieza\_id} & UUID\\ \FK & \cl{dano\_id} & UUID\\ & \cl{momento} & VARCHAR\\ & \cl{url} & TEXT\\ & \cl{tomada\_en} & TIMESTAMPTZ\\ & \cl{tamano\_kb} & INTEGER}};
+  \node[tabc] (limpieza) at (17.75,-9.6) {\tb{limpieza}{%
+    \PK & \cl{id} & UUID\\ \FK & \cl{asignacion\_id} & UUID\\ \FK & \cl{limpieza\_origen\_id} & UUID\\ & \cl{tipo} & VARCHAR\\ & \cl{inicio} & TIMESTAMPTZ\\ & \cl{fin} & TIMESTAMPTZ\\ & \cl{duracion\_neta\_seg} & INTEGER\\ & \cl{estado\_trabajo} & VARCHAR\\ & \cl{requiere\_revision} & BOOLEAN\\ & \cl{estado\_revision} & VARCHAR}};
+  \node[tab] (pausa) at (23,-9.6) {\tb{pausa}{%
+    \PK & \cl{id} & UUID\\ \FK & \cl{limpieza\_id} & UUID\\ & \cl{motivo} & VARCHAR\\ & \cl{inicio} & TIMESTAMPTZ\\ & \cl{fin} & TIMESTAMPTZ}};
+
+  % ----- Claves foráneas (la flecha apunta a la tabla referenciada) -----
+  \draw[fk] (empresa.west |- 0,-1.1) -- (usuario.east |- 0,-1.1);
+  \draw[fk] (empresa.east |- 0,-1.1) -- (propiedad.west |- 0,-1.1);
+  \draw[fk] (propiedad.east |- 0,-1.1) -- (habitacion.west |- 0,-1.1);
+  \draw[fk] (habitacion.south) -- (asignacion.north);
+  \draw[fk] (asignacion.south) -- (limpieza.north);
+  \draw[fk] (propiedad.south) |- (sp.east);
+  \draw[fk] (3.2,0 |- usuario.south) |- (sp.west);
+  \draw[fk] (1.6,0 |- usuario.south) -- (1.6,-8.75) -- (16.7,-8.75) -- (16.7,0 |- asignacion.south);
+  \node[rol, above] at (10,-8.75) {empleado\_id, asignado\_por};
+  \draw[fk] (0.55,0 |- usuario.south) -- (0.55,0 |- historial.north);
+  \node[rol, anchor=west, rotate=90] at (0.35,-8.1) {usuario\_id};
+  \draw[fk] (2,0 |- usuario.north) -- (2,0.75) -- (23,0.75) -- (revision.north);
+  \node[rol, above] at (12.5,0.75) {supervisor\_id};
+  \draw[fk] (18.95,0 |- limpieza.north) -- (18.95,-8.95) -- (23,-8.95) -- (revision.south);
+  \draw[fk] (limpieza.east |- 0,-10.6) -- (pausa.west |- 0,-10.6);
+  \draw[fk] (limpieza.west |- 0,-10.6) -- (foto.east |- 0,-10.6);
+  \draw[fk] (dano.east |- 0,-10.6) -- (foto.west |- 0,-10.6);
+  \draw[fk] (dano.west |- 0,-10.6) -- (historial.east |- 0,-10.6);
+  \draw[fk] (17.75,0 |- limpieza.south) -- (17.75,-14.2) -- (7.25,-14.2) -- (dano.south);
+  \draw[fk] ($(19.65,0 |- limpieza.south)$) -- ++(0,-0.5) -- ++(-0.75,0) -- ++(0,0.5);
+  \node[rol, anchor=west] at ($(19.65,0 |- limpieza.south)+(0.05,-0.35)$) {limpieza\_origen\_id};
+  % ----- Cardinalidades -----
+  \node[card, above left]  at (empresa.west |- 0,-1.1) {1};
+  \node[card, above right] at (usuario.east |- 0,-1.1) {N};
+  \node[card, above right] at (empresa.east |- 0,-1.1) {1};
+  \node[card, above left]  at (propiedad.west |- 0,-1.1) {N};
+  \node[card, above right] at (propiedad.east |- 0,-1.1) {1};
+  \node[card, above left]  at (habitacion.west |- 0,-1.1) {N};
+  \node[card, below right] at (habitacion.south) {1};
+  \node[card, above right] at (asignacion.north) {N};
+  \node[card, below right] at (asignacion.south) {1};
+  \node[card, above left]  at (limpieza.north) {N};
+  \node[card, below right] at (propiedad.south) {1};
+  \node[card, above right] at (sp.east) {N};
+  \node[card, below right] at (3.2,0 |- usuario.south) {1};
+  \node[card, above left]  at (sp.west) {N};
+  \node[card, below right] at (1.6,0 |- usuario.south) {1};
+  \node[card, below left]  at (16.7,0 |- asignacion.south) {N};
+  \node[card, below right] at (0.55,0 |- usuario.south) {1};
+  \node[card, above right] at (0.55,0 |- historial.north) {N};
+  \node[card, above right] at (2,0 |- usuario.north) {1};
+  \node[card, above right] at (revision.north) {N};
+  \node[card, above right] at (18.95,0 |- limpieza.north) {1};
+  \node[card, below right] at (revision.south) {0..1};
+  \node[card, above right] at (limpieza.east |- 0,-10.6) {1};
+  \node[card, above left]  at (pausa.west |- 0,-10.6) {N};
+  \node[card, above left]  at (limpieza.west |- 0,-10.6) {1};
+  \node[card, above right] at (foto.east |- 0,-10.6) {N};
+  \node[card, above right] at (dano.east |- 0,-10.6) {1};
+  \node[card, above left]  at (foto.west |- 0,-10.6) {N};
+  \node[card, above left]  at (dano.west |- 0,-10.6) {1};
+  \node[card, above right] at (historial.east |- 0,-10.6) {N};
+  \node[card, below right] at (17.75,0 |- limpieza.south) {1};
+  \node[card, below right] at (dano.south) {N};
+\end{tikzpicture}}
+\caption{Modelo relacional: tablas, columnas, tipos de datos, claves y cardinalidades.}\label{fig:datos}
+\end{figure}
+\end{landscape}
+
+La tabla siguiente detalla las columnas y restricciones de cada tabla. Todas las tablas con datos de clientes llevan \texttt{empresa\_id}, directa o heredada, para que cada empresa solo vea sus propios datos.
+
+
+
+{\small
+\setlength{\tabcolsep}{4pt}
+\begin{longtable}{L{2.9cm} L{6.6cm} L{5.4cm}}
+\toprule
+\textbf{Tabla} & \textbf{Columnas} & \textbf{Claves y restricciones}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Tabla} & \textbf{Columnas} & \textbf{Claves y restricciones}\\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\texttt{empresa} & id, nombre, codigo, idioma, plan, regla\_revision (todo / muestra / riesgo), muestra\_n, retencion\_fotos\_dias, creado\_en & PK id; UQ codigo\\
+\texttt{usuario} & id, empresa\_id, nombre\_usuario, hash\_clave, tipo\_clave (contraseña / pin), rol (admin / supervisor / empleado), idioma, activo, intentos\_fallidos, bloqueado\_hasta, creado\_en & PK id; FK empresa\_id $\rightarrow$ empresa; UQ (empresa\_id, nombre\_usuario)\\
+\texttt{propiedad} & id, empresa\_id, nombre, tipo (hotel / airbnb), direccion, zona\_horaria & PK id; FK empresa\_id $\rightarrow$ empresa\\
+\texttt{supervisor\_ propiedad} & usuario\_id, propiedad\_id & PK (usuario\_id, propiedad\_id); FK a usuario y propiedad; el usuario debe tener rol supervisor\\
+\texttt{habitacion} & id, propiedad\_id, nombre, tipo, fotos\_min\_entrada, fotos\_min\_salida, activa & PK id; FK propiedad\_id $\rightarrow$ propiedad; UQ (propiedad\_id, nombre); fotos\_min $\geq$ 1\\
+\texttt{asignacion} & id, habitacion\_id, empleado\_id, asignado\_por, fecha, prioridad, hora\_limite & PK id; FK habitacion\_id $\rightarrow$ habitacion; FK empleado\_id y asignado\_por $\rightarrow$ usuario\\
+\texttt{limpieza} & id, asignacion\_id, tipo (normal / correccion), limpieza\_origen\_id, inicio, fin, duracion\_neta\_seg, estado\_trabajo (en\_curso / enviada), requiere\_revision, estado\_revision (no\_requerida / pendiente / aprobada / rechazada) & PK id; FK asignacion\_id $\rightarrow$ asignacion; FK limpieza\_origen\_id $\rightarrow$ limpieza (nula si es normal); fin $>$ inicio\\
+\texttt{pausa} & id, limpieza\_id, motivo, inicio, fin & PK id; FK limpieza\_id $\rightarrow$ limpieza\\
+\texttt{revision} & id, limpieza\_id, supervisor\_id, resultado (aprobada / rechazada), comentario, revisado\_en & PK id; FK limpieza\_id $\rightarrow$ limpieza (UQ); FK supervisor\_id $\rightarrow$ usuario; comentario obligatorio si se rechaza\\
+\texttt{dano} & id, limpieza\_id, categoria, gravedad (leve / urgente), nota, estado (abierto / en\_reparacion / resuelto), creado\_en & PK id; FK limpieza\_id $\rightarrow$ limpieza\\
+\texttt{dano\_historial} & id, dano\_id, usuario\_id, estado\_anterior, estado\_nuevo, cambiado\_en & PK id; FK dano\_id $\rightarrow$ dano; FK usuario\_id $\rightarrow$ usuario\\
+\texttt{foto} & id, limpieza\_id, dano\_id, momento (entrada / salida / dano), url, tomada\_en, tamano\_kb & PK id; FK limpieza\_id $\rightarrow$ limpieza; FK dano\_id $\rightarrow$ dano (solo si momento = dano)\\
+\end{longtable}
+}
+
+\textbf{Índices principales:}
+\begin{itemize}[leftmargin=1.2em]
+  \item \texttt{asignacion(empleado\_id, fecha)}: lista del día del empleado.
+  \item \texttt{limpieza(estado\_revision)}: cola del supervisor.
+  \item \texttt{foto(tomada\_en)}: borrado automático de fotos vencidas.
+  \item \texttt{dano(estado)}: daños abiertos.
+\end{itemize}
+
+% ============================================================
+\section{Arquitectura propuesta}
+% ============================================================
+
+Arquitectura cliente--servidor con el mismo stack del proyecto Apartaestudios: un frontend en \textbf{React} y una API en \textbf{Python (FastAPI)} sobre PostgreSQL. Una sola aplicación web responsive sirve a los tres roles y guarda datos en el navegador para trabajar sin señal.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+  \node[caja, minimum width=15.6cm, minimum height=1.25cm] (web)  at (8,0)    {\textbf{Aplicación web responsive (React + Vite, PWA)}\\\sub{vista de celular: empleado y supervisor · vista de escritorio: administrador}};
+  \node[clave, minimum width=9cm, minimum height=1.25cm] (local) at (8,-2.3) {\textbf{Service worker + IndexedDB}\\\sub{guarda fotos y tiempos sin señal · cola de envíos}};
+  \node[caja, minimum width=15.6cm, minimum height=1.25cm] (api)   at (8,-4.8)   {\textbf{API REST en Python (FastAPI)}\\\sub{autenticación · limpieza · revisión · daños · reportes · Pydantic · JWT}};
+  \node[caja, minimum width=4.9cm, minimum height=1.25cm] (pg)     at (2.65,-7.3) {\textbf{PostgreSQL}\\\sub{SQLAlchemy + Alembic}};
+  \node[caja, minimum width=4.9cm, minimum height=1.25cm] (st)     at (8,-7.3)    {\textbf{Almacenamiento de fotos}\\\sub{S3 o compatible}};
+  \node[caja, minimum width=4.9cm, minimum height=1.25cm] (push)   at (13.35,-7.3) {\textbf{Web Push}\\\sub{al navegador o a la PWA}};
+  \node[caja, minimum width=10.25cm, minimum height=1.25cm] (tareas) at (5.325,-9.8) {\textbf{Tareas programadas (APScheduler)}\\\sub{borrado de fotos vencidas · avisos}};
+
+  \draw[doble]  (web.south) -- (local.north);
+  \draw[doble]  (local.south) -- node[etiq, right]{sincroniza (HTTPS + JWT)} (8,-4.175);
+  \draw[flecha] (2.65,-5.425) -- node[etiq, right]{SQLAlchemy} (pg.north);
+  \draw[flecha] (8,-5.425) -- node[etiq, right]{URL firmada} (st.north);
+  \draw[flecha] (13.35,-5.425) -- node[etiq, right]{notifica} (push.north);
+  \draw[flecha] (2.65,-9.175) -- (pg.south);
+  \draw[flecha] (8,-9.175) -- (st.south);
+\end{tikzpicture}
+\caption{Arquitectura propuesta: una sola aplicación web que trabaja sin señal y sincroniza con una sola API.}
+\end{figure}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{L{2.6cm} L{3.6cm} L{3.2cm} Y}
+\toprule
+\textbf{Capa} & \textbf{Tecnología} & \textbf{Alternativa} & \textbf{Motivo}\\
+\midrule
+Frontend & React + Vite, PWA (vite-plugin-pwa) & --- & Mismo stack de Apartaestudios; un solo código para celular y computador, instalable sin tiendas\\
+Sin conexión & Service worker + IndexedDB (Workbox, Dexie) & --- & Guarda fotos y eventos cuando no hay señal\\
+API y lógica & Python + FastAPI (Pydantic) & Django REST Framework & Mismo lenguaje de Apartaestudios; documentación OpenAPI automática\\
+Acceso a datos & SQLAlchemy + Alembic & Django ORM & Modelos en Python y migraciones versionadas\\
+Base de datos & PostgreSQL & MySQL & SQL para reportes de tiempos; seguridad por fila\\
+Fotos & Amazon S3 o compatible (Cloudflare R2, MinIO) & --- & Almacenamiento económico y escalable con enlaces firmados\\
+Tareas programadas & APScheduler & Celery + Redis & Borrado de fotos y avisos sin infraestructura extra\\
+Push & Web Push (pywebpush, VAPID) & OneSignal & Estándar del navegador, sin tiendas\\
+Hosting & Frontend en Vercel o Netlify; API en Docker (Render, Railway o VPS) & --- & Despliegue automático desde GitHub\\
+Monitoreo & Sentry & --- & Errores de la app y de la API en un solo lugar\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+% ============================================================
+\section{Explicación por capas}
+% ============================================================
+
+El sistema tiene seis capas. Cada una tiene una sola responsabilidad y solo se comunica con la capa vecina, lo que permite cambiar una pieza (por ejemplo, el almacenamiento de fotos) sin tocar las demás.
+
+\subsection{Capa de presentación (clientes)}
+\begin{itemize}[leftmargin=1.2em]
+  \item Una sola \textbf{aplicación web responsive} en React (con Vite) que se adapta al tamaño de la pantalla y se puede instalar como PWA.
+  \item \textbf{Vista de celular} para empleados y supervisores: login, mis habitaciones, cámara, daños, cronómetro y cola de revisión, con botones grandes y una sola columna.
+  \item \textbf{Vista de escritorio} para el administrador: usuarios, propiedades, asignaciones, reportes y configuración, con tablas y filtros.
+  \item La cámara se abre dentro de la página con la API del navegador (\texttt{getUserMedia}), así la foto siempre se toma en vivo.
+  \item Solo muestran datos y capturan acciones; no calculan tiempos ni deciden permisos.
+  \item Traducciones con i18next (español, inglés y portugués) y fechas mostradas en la zona horaria de la propiedad.
+\end{itemize}
+
+\subsection{Capa de datos local (navegador)}
+\begin{itemize}[leftmargin=1.2em]
+  \item Un \textbf{service worker} guarda la aplicación en caché para que abra sin señal, y \textbf{IndexedDB} guarda las asignaciones del día y una \textbf{cola de envíos} (fotos, daños, pausas y eventos de inicio y fin).
+  \item Cada evento lleva un identificador único generado en el teléfono; así el servidor ignora duplicados si la señal se corta a mitad de un envío.
+  \item Un sincronizador reintenta cuando vuelve la red y muestra al empleado cuántos envíos faltan. Safari en iPhone no sincroniza en segundo plano, así que allí los envíos se completan con la aplicación abierta.
+\end{itemize}
+
+\subsection{Capa de API (backend)}
+\begin{itemize}[leftmargin=1.2em]
+  \item \textbf{API REST} en Python con \textbf{FastAPI}, servida con Uvicorn dentro de un contenedor Docker.
+  \item Los datos de entrada y salida se validan con modelos \textbf{Pydantic}, y FastAPI genera la documentación OpenAPI (Swagger) automáticamente.
+  \item Endpoints principales:
+  \begin{itemize}[leftmargin=1.2em]
+    \item \texttt{/auth/login} y \texttt{/asignaciones/hoy}
+    \item \texttt{/limpiezas/\{id\}/iniciar} y \texttt{/limpiezas/\{id\}/finalizar}
+    \item \texttt{/limpiezas/\{id\}/pausas} y \texttt{/limpiezas/\{id\}/danos}
+    \item \texttt{/revisiones} y \texttt{/reportes}
+  \end{itemize}
+  \item Cada endpoint revisa el token JWT y el rol mediante dependencias de FastAPI, y responde en JSON.
+\end{itemize}
+
+\subsection{Capa de lógica de negocio (servicios)}
+\begin{itemize}[leftmargin=1.2em]
+  \item \textbf{Servicio de autenticación:} login por código de empresa y usuario, hash de contraseñas, bloqueo por intentos y tokens JWT de corta duración.
+  \item \textbf{Servicio de limpieza:} abre la limpieza con la hora del servidor, la cierra, calcula \texttt{duracion\_neta\_seg} restando las pausas e impide dos limpiezas abiertas por empleado.
+  \item \textbf{Servicio de revisión:} al enviar, decide si la limpieza requiere revisión según la regla de la empresa (todo, 1 de cada N, o riesgo: empleado nuevo, daños reportados, tiempo 40\,\% menor al promedio). Si se rechaza, crea la limpieza de corrección.
+  \item \textbf{Servicio de daños:} maneja los estados y su historial.
+  \item \textbf{Servicio de reportes:} calcula promedios por habitación y por empleado.
+  \item \textbf{Tareas programadas} (APScheduler): borrado diario de fotos vencidas (salvo daños abiertos) y avisos de asignaciones vencidas.
+\end{itemize}
+
+\subsection{Capa de acceso a datos}
+\begin{itemize}[leftmargin=1.2em]
+  \item \textbf{PostgreSQL} con las 12 tablas del modelo relacional, accedida desde Python con el ORM \textbf{SQLAlchemy}.
+  \item \textbf{Aislamiento por empresa:} una dependencia de FastAPI agrega el \texttt{empresa\_id} del usuario (y, para supervisores, sus propiedades) a cada consulta. Como segunda barrera, PostgreSQL aplica seguridad por fila (RLS), así que aunque la API tuviera un error la base no devolvería datos de otra empresa.
+  \item Migraciones versionadas con \textbf{Alembic} para cambiar el esquema sin perder datos.
+\end{itemize}
+
+\subsection{Capa de almacenamiento e infraestructura}
+\begin{itemize}[leftmargin=1.2em]
+  \item \textbf{Almacenamiento de objetos} (Amazon S3 o un servicio compatible, como Cloudflare R2) para las fotos, organizado por \texttt{empresa/propiedad/limpieza/} y con enlaces firmados que vencen.
+  \item \textbf{Notificaciones push} con Web Push (librería pywebpush y claves VAPID). En iPhone solo funcionan si la aplicación está instalada en la pantalla de inicio (iOS 16.4 o superior).
+  \item \textbf{Hosting:} el frontend de React en Vercel o Netlify y la API de FastAPI en un contenedor Docker (Render, Railway o un VPS), ambos con HTTPS obligatorio (lo exige la cámara del navegador).
+  \item \textbf{Monitoreo} de errores con Sentry, copias de seguridad diarias y despliegue automático desde GitHub.
+\end{itemize}
+
+% ============================================================
+\section{Flujo completo}
+% ============================================================
+
+El ciclo completo va del alta de usuarios a la revisión. El empleado envía y sigue trabajando, y el sistema decide qué limpiezas pasan por el supervisor.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  paso/.style={caja, minimum width=2.8cm, minimum height=1.15cm},
+  pasoclave/.style={clave, minimum width=2.8cm, minimum height=1.15cm}]
+  % carriles
+  \foreach \y in {1.3,-1.3,-3.9,-6.5,-9.1} \draw[gris!45, line width=0.4pt] (0,\y) -- (16,\y);
+  \node[anchor=west, font=\small\bfseries] at (0,0)    {Administrador};
+  \node[anchor=west, font=\small\bfseries] at (0,-2.6) {Empleado};
+  \node[anchor=west, font=\small\bfseries] at (0,-5.2) {Sistema};
+  \node[anchor=west, font=\small\bfseries] at (0,-7.8) {Supervisor};
+
+  \node[paso] (a1) at (4.6,0)    {Crear usuarios\\y habitaciones};
+  \node[paso] (a2) at (7.85,0)    {Asignar\\habitaciones};
+  \node[paso] (a3) at (11.1,0)   {Gestionar\\daños};
+  \node[paso] (e2) at (7.85,-2.6) {Ver mis\\habitaciones};
+  \node[pasoclave] (e3) at (11.1,-2.6) {Foto entrada,\\daños, limpiar};
+  \node[pasoclave] (e4) at (14.45,-2.6) {Foto salida\\y enviar};
+  \node[decision, aspect=1.9] (s4) at (14.45,-5.2) {¿Requiere\\revisión?};
+  \node[paso] (s3) at (11.1,-5.2) {Aprobada};
+  \node[paso] (s2) at (7.85,-5.2) {Crear tarea\\de corrección};
+  \node[paso] (p4) at (14.45,-7.8) {Aprobar\\o rechazar};
+
+  \draw[flecha] (a1) -- (a2);
+  \draw[flecha] (a2) -- (e2);
+  \draw[flecha] (e2) -- (e3);
+  \draw[flecha] (e3) -- node[etiq, right, pos=0.22]{si hay daño} (a3);
+  \draw[flecha] (e3) -- (e4);
+  \draw[flecha] (e4) -- (s4);
+  \draw[flecha] (s4) -- node[etiq, above]{no} (s3);
+  \draw[flecha] (s4) -- node[etiq, right, pos=0.2]{sí} (p4);
+  \draw[flecha] (p4.west) -| node[etiq, above, pos=0.25]{aprueba} (s3.south);
+  \draw[flecha] (p4.south) -- (14.45,-8.75) -| node[etiq, above, pos=0.25]{rechaza} (s2.south);
+  \draw[flecha] (s2) -- node[etiq, right, pos=0.22]{vuelve a la lista} (e2);
+\end{tikzpicture}
+\caption{Flujo completo por rol: el empleado nunca espera al supervisor.}
+\end{figure}
+
+\begin{enumerate}[leftmargin=1.4em]
+  \item El \textbf{administrador} crea los usuarios (nombre y contraseña), las propiedades y las habitaciones, y configura la regla de revisión.
+  \item El \textbf{administrador o el supervisor} asigna las habitaciones del día.
+  \item El \textbf{empleado} ve su lista, toma la foto de entrada (arranca el tiempo), reporta daños y limpia.
+  \item Si hay daños, aparecen de inmediato para el administrador y el supervisor, que los gestionan hasta resolverlos.
+  \item El empleado toma la foto de salida (se detiene el tiempo), envía y pasa a la siguiente habitación.
+  \item El \textbf{sistema} aplica la regla: si la limpieza no requiere revisión, queda aprobada; si la requiere, entra a la cola del supervisor.
+  \item El \textbf{supervisor} aprueba o rechaza con comentario. Un rechazo crea una tarea de corrección que vuelve a la lista del empleado.
+  \item Todos los tiempos, fotos y daños alimentan los reportes del administrador.
+\end{enumerate}
+
+% ============================================================
+\section{Plan de pruebas}
+% ============================================================
+
+Las pruebas verifican que cada requisito funcional y no funcional se cumple antes de llegar a un cliente. Se combinan pruebas automáticas, que corren en cada cambio del código, con pruebas manuales en celulares reales y una prueba piloto con un cliente.
+
+\subsection{Tipos de prueba y herramientas}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{L{2.9cm} Y L{3.6cm}}
+\toprule
+\textbf{Tipo} & \textbf{Qué se prueba} & \textbf{Herramienta}\\
+\midrule
+Unitarias (backend) & Reglas de negocio aisladas: cálculo de la duración neta, regla de revisión, bloqueo por intentos, cambio de estado de un daño & pytest\\
+Unitarias (frontend) & Componentes de React: cronómetro, formulario de daños, lista del día, cola de envíos & Vitest + React Testing Library\\
+Integración & Endpoints de la API contra una base de datos PostgreSQL real de pruebas & pytest + TestClient de FastAPI + PostgreSQL en Docker\\
+Extremo a extremo (E2E) & Flujos completos en el navegador: iniciar sesión, limpiar una habitación, revisar y rechazar & Playwright\\
+Sin conexión & Completar una limpieza sin red y sincronizar al volver la señal, sin duplicados & Playwright (modo sin red) y pruebas manuales en celular\\
+Compatibilidad y diseño responsive & Pantallas desde 360\,px; Chrome en Android, Safari en iPhone y navegadores de computador & Playwright con perfiles de dispositivos y celulares reales\\
+Seguridad & Aislamiento entre empresas, permisos por rol, contraseñas, tokens vencidos, inyección SQL & pytest y OWASP ZAP\\
+Rendimiento & Tiempos de respuesta con muchos usuarios simultáneos y peso de las fotos & Locust\\
+Usabilidad & Que un empleado nuevo complete una limpieza sin ayuda & Prueba con usuarios reales y observación\\
+Aceptación & Criterios de aceptación de cada historia de usuario & Prueba piloto con un cliente\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Entorno y datos de prueba}
+
+\begin{itemize}[leftmargin=1.2em]
+  \item \textbf{Entorno aislado:} un \texttt{docker-compose} levanta la API, PostgreSQL y un almacenamiento de fotos compatible con S3 (MinIO) solo para pruebas, sin tocar datos reales.
+  \item \textbf{Datos semilla:} dos empresas con un administrador, un supervisor y tres empleados cada una; dos propiedades (un hotel y un Airbnb) con cinco habitaciones; fotos de ejemplo de menos de 500\,KB.
+  \item \textbf{Integración continua:} GitHub Actions ejecuta las pruebas unitarias, de integración y E2E en cada \emph{push} y en cada \emph{pull request}; si alguna falla, el cambio no se integra.
+  \item \textbf{Cobertura:} se mide con \texttt{pytest-cov} en el backend y con Vitest en el frontend.
+\end{itemize}
+
+\subsection{Casos de prueba}
+
+Cada caso indica el requisito que verifica, los pasos o datos de entrada y el resultado esperado.
+
+{\small
+\setlength{\tabcolsep}{4pt}
+\begin{longtable}{L{1.1cm} L{1.5cm} L{6.3cm} L{5.6cm}}
+\toprule
+\textbf{ID} & \textbf{Req.} & \textbf{Caso y pasos} & \textbf{Resultado esperado}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{ID} & \textbf{Req.} & \textbf{Caso y pasos} & \textbf{Resultado esperado}\\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+CP-01 & RF-01 & Iniciar sesión con código de empresa, usuario y contraseña correctos & Entra a la vista de su rol y recibe un token válido\\
+CP-02 & RF-01, RNF-05 & Ingresar 5 veces una contraseña incorrecta y luego la correcta & La cuenta queda bloqueada 15 minutos y no permite entrar aunque la contraseña sea correcta\\
+CP-03 & RF-02 & Crear un usuario con un nombre que ya existe en la misma empresa, y luego en otra empresa & En la misma empresa muestra error; en otra empresa se crea sin problema\\
+CP-04 & RNF-08 & Con un usuario de la empresa A, pedir por la API una limpieza de la empresa B & La API responde 404 y no entrega ningún dato de la empresa B\\
+CP-05 & RF-02 & Con un empleado, llamar al endpoint de reportes o de creación de usuarios & La API responde 403 (sin permiso)\\
+CP-06 & RF-05, RF-06 & El supervisor asigna la habitación 101 a un empleado para hoy & La habitación aparece en la lista del día del empleado, ordenada por prioridad\\
+CP-07 & RF-07 & Abrir una habitación y tomar la primera foto de entrada & El cronómetro arranca con la hora del servidor, no la del celular\\
+CP-08 & RF-07 & Intentar continuar con menos fotos de entrada que el mínimo configurado & El botón para continuar sigue deshabilitado\\
+CP-09 & RF-07 & Abrir la cámara de la aplicación & Solo permite tomar la foto en vivo; no hay opción para elegir de la galería\\
+CP-10 & RF-08 & Marcar \enquote{Sí, hay daños} sin foto ni categoría & No deja guardar y señala los campos obligatorios\\
+CP-11 & RF-09 & Limpieza de 08:00 a 08:30 con una pausa de 08:10 a 08:15 & \texttt{duracion\_neta\_seg} = 1500 (25 minutos)\\
+CP-12 & RF-10 & Tomar la última foto de salida & El cronómetro se detiene, la limpieza queda Enviada y la siguiente habitación se desbloquea sin esperar revisión\\
+CP-13 & RNF-06 & Enviar desde el cliente una duración o una hora alterada & El servidor ignora esos valores y usa su propia hora y su cálculo\\
+CP-14 & RF-11 & Regla \enquote{todo}: enviar 10 limpiezas & Las 10 quedan en la cola del supervisor\\
+CP-15 & RF-11 & Regla \enquote{muestra 1 de cada 5} con semilla fija: enviar 100 limpiezas & Entre 15 y 25 limpiezas quedan por revisar; el resto queda sin revisión requerida\\
+CP-16 & RF-11 & Regla \enquote{riesgo}: limpieza de un empleado nuevo, con daño reportado o 40\,\% más rápida que el promedio & Cada una queda marcada como \enquote{por revisar}\\
+CP-17 & RF-12, RF-13 & El supervisor rechaza una limpieza sin comentario, y luego con comentario & Sin comentario no se permite; con comentario se crea una limpieza de corrección que apunta a la original y aparece en la lista del empleado\\
+CP-18 & RF-14 & Cambiar un daño de \enquote{abierto} a \enquote{en reparación} y luego a \enquote{resuelto} & Se guardan dos registros en el historial con usuario y fecha\\
+CP-19 & RF-15 & Pedir el tiempo promedio de la habitación 101 con 3 limpiezas de 20, 25 y 30 minutos & El reporte muestra 25 minutos\\
+CP-20 & RF-16 & Configurar retención de 30 días y ejecutar la tarea de borrado con fotos de 31 días, una de ellas de un daño abierto & Se borran las fotos vencidas excepto la del daño abierto\\
+CP-21 & RNF-03 & En modo sin red, completar una limpieza completa y luego recuperar la conexión & Todo se guarda localmente, se sincroniza al volver la red y no se crean registros duplicados\\
+CP-22 & RNF-02 & Cambiar el idioma del usuario a inglés y luego a portugués & Toda la interfaz cambia de idioma, sin textos sin traducir\\
+CP-23 & RNF-04 & Abrir la lista del día con red 4G simulada y subir una foto tomada con la cámara & La lista carga en menos de 2\,s y la foto pesa menos de 500\,KB\\
+CP-24 & RNF-10 & Abrir todas las pantallas a 360\,px de ancho en Chrome (Android) y Safari (iPhone) & No hay desplazamiento horizontal y todos los botones se pueden tocar\\
+CP-25 & RNF-01 & Pedir a un empleado sin capacitación que complete su primera limpieza & La completa sin ayuda en menos de 5 minutos\\
+CP-26 & RNF-04 & Prueba de carga con 200 usuarios simultáneos durante 10 minutos (Locust) & El 95\,\% de las respuestas tarda menos de 1\,s y no hay errores del servidor\\
+\end{longtable}
+}
+
+\subsection{Criterios de aceptación de las pruebas}
+
+\begin{itemize}[leftmargin=1.2em]
+  \item Todos los casos de prueba de esta sección pasan.
+  \item Cobertura de al menos 80\,\% en los servicios del backend (autenticación, limpieza, revisión y daños).
+  \item Ningún defecto crítico o alto abierto al momento del despliegue.
+\end{itemize}
+
+\subsection{Gestión de defectos}
+
+Cada defecto se registra en GitHub Issues con los pasos para reproducirlo, el resultado esperado, el obtenido y una captura de pantalla. Se clasifica por severidad:
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{L{2cm} Y}
+\toprule
+\textbf{Severidad} & \textbf{Ejemplo}\\
+\midrule
+Crítica & Un usuario ve datos de otra empresa, o se pierden fotos o tiempos de una limpieza\\
+Alta & Un flujo principal no se puede completar, como enviar una limpieza o aprobar una revisión\\
+Media & Una función secundaria falla pero hay una forma alterna, como un filtro de reportes que no funciona\\
+Baja & Detalles visuales o de texto que no impiden el uso\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+% ============================================================
+\section{Planificación por etapas}
+% ============================================================
+
+El desarrollo se organiza en cinco fases. Cada fase termina con un entregable que se revisa antes de pasar a la siguiente.
+
+\subsection{Fase 1: Diseño}
+\begin{itemize}[leftmargin=1.2em]
+  \item Validar los requisitos con 3 a 5 posibles clientes.
+  \item Mapa de pantallas y prototipo navegable en Figma de la vista de celular (empleado y supervisor) y de la vista de escritorio (administrador).
+  \item Guía visual: colores, tipografía e iconos grandes.
+  \item Ajustar el modelo de datos con lo aprendido.
+\end{itemize}
+\textbf{Entregable:} prototipo y este documento aprobados.
+
+\subsection{Fase 2: Backend, API y base de datos}
+\begin{itemize}[leftmargin=1.2em]
+  \item Crear el proyecto FastAPI con Docker, los modelos SQLAlchemy y las migraciones Alembic de las 12 tablas.
+  \item Aislamiento por empresa y por rol (dependencias de FastAPI y RLS en PostgreSQL).
+  \item Servicios de autenticación (JWT, Argon2), limpieza, revisión y daños; subida de fotos a S3.
+  \item Documentación de la API, generada por FastAPI (OpenAPI/Swagger).
+\end{itemize}
+\textbf{Entregable:} API funcionando en un entorno de pruebas.
+
+\subsection{Fase 3: Frontend}
+\begin{itemize}[leftmargin=1.2em]
+  \item Proyecto React con Vite, enrutamiento y conexión a la API.
+  \item Vista de celular: login, lista del día, cámara, daños, cronómetro, pausas, sincronización sin conexión y cola del supervisor.
+  \item Vista de escritorio: usuarios, propiedades, asignaciones, reportes y configuración.
+  \item Configuración como PWA: manifiesto, iconos, service worker e instalación en la pantalla de inicio.
+  \item Traducciones a español, inglés y portugués.
+\end{itemize}
+\textbf{Entregable:} aplicación web responsive en un entorno de pruebas, instalable en el celular como PWA.
+
+\subsection{Fase 4: Pruebas}
+\begin{itemize}[leftmargin=1.2em]
+  \item Ejecutar el plan de pruebas de la sección anterior: pruebas unitarias, de integración, E2E, sin conexión, de seguridad y de rendimiento.
+  \item Pruebas sin señal y en distintos tamaños de pantalla: celulares Android de gama baja (Chrome), iPhone (Safari), tableta y computador.
+  \item Prueba piloto con un cliente real.
+  \item Corrección de errores y revisión de seguridad y privacidad.
+\end{itemize}
+\textbf{Entregable:} todos los casos del plan de pruebas ejecutados, informe de resultados y lista de defectos cerrada.
+
+\subsection{Fase 5: Despliegue}
+\begin{itemize}[leftmargin=1.2em]
+  \item Entorno de producción para la API, la base de datos y el almacenamiento de fotos.
+  \item Publicación del frontend y de la API (contenedor Docker) con dominio propio y HTTPS.
+  \item Monitoreo, copias de seguridad, aviso de privacidad, términos de uso y un manual corto por rol.
+\end{itemize}
+\textbf{Entregable:} aplicación en producción y primer cliente pagando.
+
+\textbf{Riesgos.} Al no pasar por tiendas de aplicaciones, la publicación no depende de revisiones externas. El riesgo principal es la cámara y el modo sin conexión en Safari de iPhone, que conviene probar desde la fase 3. Si el piloto revela problemas graves de usabilidad, se vuelve a la fase 3 antes de desplegar.
+
+\end{document}

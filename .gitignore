@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+# Node
+node_modules/
+dist/
+# Entorno
+.env
+.env.*
+!.env.example
+# LaTeX
+*.aux
+*.log
+*.fls
+*.fdb_latexmk
+*.out
+*.toc
+# Sistema
+.DS_Store
+
+# Herramientas
+.mypy_cache/
+.ruff_cache/
+# Paquete original del proyecto
+*.zip
