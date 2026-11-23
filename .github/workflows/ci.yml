@@ -23,7 +23,7 @@ jobs:
       TEST_DATABASE_URL: postgresql+psycopg://limpieza_app:app_test@127.0.0.1:55432/limpieza_test
       TEST_MIGRATION_DATABASE_URL: postgresql+psycopg://limpieza_owner:owner_test@127.0.0.1:55432/limpieza_test
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: PostgreSQL de pruebas (con los roles y RLS reales)
         working-directory: .
         run: docker compose -f docker-compose.test.yml up -d --wait
@@ -49,7 +49,7 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
         with:
           version: "12.21.0"
@@ -82,7 +82,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [backend, frontend]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Crear .env con secretos desechables
         run: |
           cp .env.example .env
