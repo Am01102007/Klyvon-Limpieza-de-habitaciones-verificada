@@ -1,0 +1,115 @@
+# Despliegue completo en una sola máquina (pensado para EC2 t2.micro / t3.micro, 1 GB de RAM + swap).
+# Uso: copiar .env.example como .env, completar los secretos y correr `docker compose up -d --build`.
+name: limpieza
+
+x-backend: &backend
+  image: limpieza-api:local
+  networks: [interna]
+
+services:
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD en .env}
+      POSTGRES_DB: limpieza
+      OWNER_PASSWORD: ${OWNER_PASSWORD:?Falta OWNER_PASSWORD en .env}
+      APP_PASSWORD: ${APP_PASSWORD:?Falta APP_PASSWORD en .env}
+      TZ: UTC
+    # Ajustes para poca memoria: pocas conexiones y búferes pequeños.
+    command:
+      - postgres
+      - -c
+      - shared_buffers=64MB
+      - -c
+      - effective_cache_size=192MB
+      - -c
+      - work_mem=4MB
+      - -c
+      - maintenance_work_mem=32MB
+      - -c
+      - max_connections=30
+    volumes:
+      - datos-db:/var/lib/postgresql
+      - ./backend/docker/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d limpieza"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    networks: [interna]
+
+  migrate:
+    <<: *backend
+    pull_policy: never
+    command: ["alembic", "upgrade", "head"]
+    restart: "no"
+    environment:
+      MIGRATION_DATABASE_URL: postgresql+psycopg://limpieza_owner:${OWNER_PASSWORD}@db:5432/limpieza
+      SEMILLA_CLAVE: ${SEMILLA_CLAVE:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 192M
+
+  api:
+    <<: *backend
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+psycopg://limpieza_app:${APP_PASSWORD}@db:5432/limpieza
+      JWT_SECRETO: ${JWT_SECRETO:?Falta JWT_SECRETO en .env}
+      FOTOS_FIRMA_SECRETO: ${FOTOS_FIRMA_SECRETO:?Falta FOTOS_FIRMA_SECRETO en .env}
+      FOTOS_DIR: /datos/fotos
+      ENTORNO: ${ENTORNO:-produccion}
+    volumes:
+      - datos-fotos:/datos/fotos
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    deploy:
+      resources:
+        limits:
+          memory: 384M
+
+  web:
+    build: ./frontend
+    image: limpieza-web:local
+    restart: unless-stopped
+    environment:
+      DOMINIO: ${DOMINIO:-http://localhost}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - datos-caddy:/data
+      - config-caddy:/config
+    depends_on:
+      api:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+    networks: [interna]
+
+volumes:
+  datos-db:
+  datos-fotos:
+  datos-caddy:
+  config-caddy:
+
+networks:
+  interna:
