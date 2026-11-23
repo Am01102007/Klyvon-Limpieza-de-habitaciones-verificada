@@ -268,10 +268,11 @@ Panel web del administrador con historial y filtros & MVP & El administrador tra
 Idiomas español, inglés y portugués & MVP & Mercado extranjero\\
 Modo sin conexión & MVP & Señal débil dentro de las habitaciones\\
 Reportes de tiempos y daños & MVP & Lo que le da valor al dueño\\
+Exportar reportes a PDF & MVP & Evidencia para reclamos por daños\\
 \midrule
 Checklist por tipo de habitación & v2 & Útil, pero añade pasos\\
 Notificaciones push & v2 & Nuevas asignaciones, rechazos y daños urgentes\\
-Exportar a Excel o PDF & v2 & Evidencia para reclamos por daños\\
+Exportar a Excel & v2 & Análisis fuera de la aplicación\\
 Sincronizar calendarios de Airbnb y Booking (iCal) & v2 & Crear limpiezas automáticamente\\
 \midrule
 Inventario de insumos y amenities & v3 & \\
@@ -287,7 +288,7 @@ Apps nativas para Android e iOS & v3 & Solo si la web se queda corta\\
 \section{Requisitos funcionales y no funcionales}
 % ============================================================
 
-Hay 18 requisitos funcionales (16 entran en el MVP) y 11 no funcionales. La prioridad sigue el método MoSCoW: \emph{Debe} entra en el MVP y \emph{Debería} entra si hay tiempo.
+Hay 18 requisitos funcionales (17 entran en el MVP) y 11 no funcionales. La prioridad sigue el método MoSCoW: \emph{Debe} entra en el MVP y \emph{Debería} entra si hay tiempo.
 
 \subsection{Requisitos funcionales}
 
@@ -319,7 +320,7 @@ RF-13 & Devolver la limpieza rechazada al empleado como tarea de corrección & S
 RF-14 & Gestionar daños: abierto, en reparación, resuelto & Administrador, supervisor & Debe\\
 RF-15 & Ver reportes de tiempo promedio por habitación y por empleado, y de daños por propiedad & Administrador, supervisor & Debe\\
 RF-16 & Configurar idioma, zona horaria, fotos mínimas, regla de revisión y días de retención de fotos & Administrador & Debe\\
-RF-17 & Exportar reportes a Excel o PDF & Administrador & Debería\\
+RF-17 & Exportar reportes a PDF (MVP) y a Excel (v2) & Administrador, supervisor & Debe\\
 RF-18 & Recibir notificaciones push de nuevas asignaciones, rechazos y daños urgentes & Todos & Debería\\
 \end{longtable}
 }
@@ -657,7 +658,7 @@ Otras enumeraciones del modelo son \texttt{TipoClave} (contraseña, PIN), \textt
 \section{Modelo relacional}
 % ============================================================
 
-El modelo tiene 12 tablas en PostgreSQL. \textbf{Limpieza} es el centro, porque allí se registran los tiempos, las fotos, los daños y la revisión. La figura~\ref{fig:datos}, en una página horizontal, muestra cada tabla con sus columnas y tipos de datos. \textbf{PK} es la clave primaria, \textbf{FK} la clave foránea y \textbf{UQ} un valor único. Cada flecha sale de la tabla que tiene la clave foránea y apunta a la tabla que referencia; los números azules indican la cardinalidad en cada extremo (1, N o 0..1). Los identificadores son \texttt{UUID}, las fechas con hora usan \texttt{TIMESTAMPTZ} y las longitudes de cada \texttt{VARCHAR} se fijan en las migraciones.
+El modelo tiene 13 tablas en PostgreSQL. \textbf{Limpieza} es el centro, porque allí se registran los tiempos, las fotos, los daños y la revisión. La figura~\ref{fig:datos}, en una página horizontal, muestra cada tabla con sus columnas y tipos de datos. \textbf{PK} es la clave primaria, \textbf{FK} la clave foránea y \textbf{UQ} un valor único. Cada flecha sale de la tabla que tiene la clave foránea y apunta a la tabla que referencia; los números azules indican la cardinalidad en cada extremo (1, N o 0..1). La figura muestra las columnas de negocio: además, todas las tablas salvo \texttt{empresa} llevan \texttt{empresa\_id} (para la seguridad por fila y para que las claves foráneas compuestas impidan mezclar datos de dos empresas), \texttt{limpieza} lleva \texttt{empleado\_id} (lo exige el índice único de una limpieza abierta por empleado) y la tabla \texttt{refresh\_token} guarda el hash de los tokens de sesión. Los identificadores son \texttt{UUID}, las fechas con hora usan \texttt{TIMESTAMPTZ} y las longitudes de cada \texttt{VARCHAR} se fijan en las migraciones.
 
 Una empresa tiene usuarios y propiedades; cada habitación recibe asignaciones y cada asignación genera una o más limpiezas (la de corrección apunta a la original mediante \texttt{limpieza\_origen\_id}). El usuario aparece en varios papeles: empleado asignado, supervisor que revisa, supervisor de propiedades y autor de los cambios de estado de los daños.
 
@@ -791,12 +792,13 @@ La tabla siguiente detalla las columnas y restricciones de cada tabla. Todas las
 \texttt{supervisor\_ propiedad} & usuario\_id, propiedad\_id & PK (usuario\_id, propiedad\_id); FK a usuario y propiedad; el usuario debe tener rol supervisor\\
 \texttt{habitacion} & id, propiedad\_id, nombre, tipo, fotos\_min\_entrada, fotos\_min\_salida, activa & PK id; FK propiedad\_id $\rightarrow$ propiedad; UQ (propiedad\_id, nombre); fotos\_min $\geq$ 1\\
 \texttt{asignacion} & id, habitacion\_id, empleado\_id, asignado\_por, fecha, prioridad, hora\_limite & PK id; FK habitacion\_id $\rightarrow$ habitacion; FK empleado\_id y asignado\_por $\rightarrow$ usuario\\
-\texttt{limpieza} & id, asignacion\_id, tipo (normal / correccion), limpieza\_origen\_id, inicio, fin, duracion\_neta\_seg, estado\_trabajo (en\_curso / enviada), requiere\_revision, estado\_revision (no\_requerida / pendiente / aprobada / rechazada) & PK id; FK asignacion\_id $\rightarrow$ asignacion; FK limpieza\_origen\_id $\rightarrow$ limpieza (nula si es normal); fin $>$ inicio\\
+\texttt{limpieza} & id, asignacion\_id, empleado\_id, tipo (normal / correccion), limpieza\_origen\_id, inicio, fin, duracion\_neta\_seg, estado\_trabajo (pendiente / en\_curso / enviada), requiere\_revision, estado\_revision (no\_requerida / pendiente / aprobada / rechazada) & PK id; FK asignacion\_id $\rightarrow$ asignacion; FK limpieza\_origen\_id $\rightarrow$ limpieza (nula si es normal); fin $>$ inicio\\
 \texttt{pausa} & id, limpieza\_id, motivo, inicio, fin & PK id; FK limpieza\_id $\rightarrow$ limpieza\\
 \texttt{revision} & id, limpieza\_id, supervisor\_id, resultado (aprobada / rechazada), comentario, revisado\_en & PK id; FK limpieza\_id $\rightarrow$ limpieza (UQ); FK supervisor\_id $\rightarrow$ usuario; comentario obligatorio si se rechaza\\
 \texttt{dano} & id, limpieza\_id, categoria, gravedad (leve / urgente), nota, estado (abierto / en\_reparacion / resuelto), creado\_en & PK id; FK limpieza\_id $\rightarrow$ limpieza\\
 \texttt{dano\_historial} & id, dano\_id, usuario\_id, estado\_anterior, estado\_nuevo, cambiado\_en & PK id; FK dano\_id $\rightarrow$ dano; FK usuario\_id $\rightarrow$ usuario\\
 \texttt{foto} & id, limpieza\_id, dano\_id, momento (entrada / salida / dano), url, tomada\_en, tamano\_kb & PK id; FK limpieza\_id $\rightarrow$ limpieza; FK dano\_id $\rightarrow$ dano (solo si momento = dano)\\
+\texttt{refresh\_ token} & id, usuario\_id, hash\_token, expira\_en, revocado\_en, creado\_en & PK id; FK usuario\_id $\rightarrow$ usuario; UQ hash\_token\\
 \end{longtable}
 }
 
@@ -850,7 +852,7 @@ Base de datos & PostgreSQL & MySQL & SQL para reportes de tiempos; seguridad por
 Fotos & Amazon S3 o compatible (Cloudflare R2, MinIO) & --- & Almacenamiento económico y escalable con enlaces firmados\\
 Tareas programadas & APScheduler & Celery + Redis & Borrado de fotos y avisos sin infraestructura extra\\
 Push & Web Push (pywebpush, VAPID) & OneSignal & Estándar del navegador, sin tiendas\\
-Hosting & Frontend en Vercel o Netlify; API en Docker (Render, Railway o VPS) & --- & Despliegue automático desde GitHub\\
+Hosting & Docker Compose en AWS EC2 (Caddy sirve la PWA y hace de proxy de la API) & --- & Integración continua en GitHub Actions\\
 Monitoreo & Sentry & --- & Errores de la app y de la API en un solo lugar\\
 \bottomrule
 \end{tabularx}
@@ -905,7 +907,7 @@ El sistema tiene seis capas. Cada una tiene una sola responsabilidad y solo se c
 
 \subsection{Capa de acceso a datos}
 \begin{itemize}[leftmargin=1.2em]
-  \item \textbf{PostgreSQL} con las 12 tablas del modelo relacional, accedida desde Python con el ORM \textbf{SQLAlchemy}.
+  \item \textbf{PostgreSQL} con las 13 tablas del modelo relacional, accedida desde Python con el ORM \textbf{SQLAlchemy}.
   \item \textbf{Aislamiento por empresa:} una dependencia de FastAPI agrega el \texttt{empresa\_id} del usuario (y, para supervisores, sus propiedades) a cada consulta. Como segunda barrera, PostgreSQL aplica seguridad por fila (RLS), así que aunque la API tuviera un error la base no devolvería datos de otra empresa.
   \item Migraciones versionadas con \textbf{Alembic} para cambiar el esquema sin perder datos.
 \end{itemize}
@@ -914,7 +916,7 @@ El sistema tiene seis capas. Cada una tiene una sola responsabilidad y solo se c
 \begin{itemize}[leftmargin=1.2em]
   \item \textbf{Almacenamiento de objetos} (Amazon S3 o un servicio compatible, como Cloudflare R2) para las fotos, organizado por \texttt{empresa/propiedad/limpieza/} y con enlaces firmados que vencen.
   \item \textbf{Notificaciones push} con Web Push (librería pywebpush y claves VAPID). En iPhone solo funcionan si la aplicación está instalada en la pantalla de inicio (iOS 16.4 o superior).
-  \item \textbf{Hosting:} el frontend de React en Vercel o Netlify y la API de FastAPI en un contenedor Docker (Render, Railway o un VPS), ambos con HTTPS obligatorio (lo exige la cámara del navegador).
+  \item \textbf{Hosting:} una instancia AWS EC2 (Free Tier) con Docker Compose: PostgreSQL, la API de FastAPI y Caddy, que sirve la PWA, hace de proxy de la API en el mismo dominio y obtiene el certificado HTTPS de Let's Encrypt (HTTPS es obligatorio: lo exige la cámara del navegador).
   \item \textbf{Monitoreo} de errores con Sentry, copias de seguridad diarias y despliegue automático desde GitHub.
 \end{itemize}
 
@@ -1099,7 +1101,7 @@ El desarrollo se organiza en cinco fases. Cada fase termina con un entregable qu
 
 \subsection{Fase 2: Backend, API y base de datos}
 \begin{itemize}[leftmargin=1.2em]
-  \item Crear el proyecto FastAPI con Docker, los modelos SQLAlchemy y las migraciones Alembic de las 12 tablas.
+  \item Crear el proyecto FastAPI con Docker, los modelos SQLAlchemy y las migraciones Alembic de las 13 tablas.
   \item Aislamiento por empresa y por rol (dependencias de FastAPI y RLS en PostgreSQL).
   \item Servicios de autenticación (JWT, Argon2), limpieza, revisión y daños; subida de fotos a S3.
   \item Documentación de la API, generada por FastAPI (OpenAPI/Swagger).

@@ -1,30 +1,52 @@
+# Secretos: solo se versionan las plantillas .env.example
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.local.sql
+
 # Python
 __pycache__/
 *.py[cod]
 .venv/
 venv/
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
 .coverage
 htmlcov/
-# Node
+requisitos.txt
+
+# Node y frontend
 node_modules/
 dist/
-# Entorno
-.env
-.env.*
-!.env.example
-# LaTeX
+dist-ssr/
+dev-dist/
+coverage/
+*.local
+
+# Playwright
+playwright-report/
+test-results/
+blob-report/
+
+# LaTeX (se versiona solo main.tex y el PDF)
 *.aux
 *.log
 *.fls
 *.fdb_latexmk
 *.out
 *.toc
-# Sistema
-.DS_Store
+*.synctex.gz
 
-# Herramientas
-.mypy_cache/
-.ruff_cache/
-# Paquete original del proyecto
+# Respaldos y archivos comprimidos
+*.dump
+*.tar.gz
 *.zip
+
+# Sistema y editores
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

@@ -28,23 +28,21 @@ Usuarios se crean **solo con nombre y contraseña** (sin correo). El login pide 
 
 Reglas: hora y duración siempre las calcula **el servidor** (duración neta = fin − inicio − pausas), nunca el cliente. Un empleado no puede tener dos limpiezas abiertas. Fotos comprimidas a < 500 KB. Modo sin conexión obligatorio.
 
-Estados en dos ejes: trabajo (Pendiente → En curso → Enviada) y revisión (No requerida / Pendiente / Aprobada / Rechazada).
+Estados en dos ejes: trabajo (Pendiente → En curso → Enviada) y revisión (Sin revisión requerida / Por revisar / Aprobada / Rechazada).
 
 ## Stack (mismo que el proyecto Apartaestudios: Python + React)
 
 - **Frontend**: React + TypeScript + Vite, TanStack Query, PWA (vite-plugin-pwa), service worker + IndexedDB (Workbox, Dexie) para modo offline, i18next.
-- **Backend**: Python + **FastAPI** (Pydantic, JWT, Argon2), Uvicorn en Docker.
+- **Backend**: Python + **FastAPI** (Pydantic, JWT, Argon2), Uvicorn en Docker. En desarrollo también corre sin Docker, contra PostgreSQL local.
 - **Datos**: PostgreSQL, SQLAlchemy + Alembic. Aislamiento por `empresa_id` en cada consulta (dependencia de FastAPI) + RLS en PostgreSQL como segunda barrera.
-- **Fotos**: S3 o compatible (MinIO en local/pruebas), con URLs firmadas.
+- **Fotos**: S3 o compatible en el despliegue, con URLs firmadas. Por ahora, carpeta local detrás de la interfaz `AlmacenFotos`.
 - **Tareas programadas**: APScheduler (borrado diario de fotos vencidas, salvo las de daños abiertos).
 - **Push**: Web Push (pywebpush, VAPID).
 - **Pruebas**: pytest (+ pytest-cov), TestClient de FastAPI, Vitest + React Testing Library, Playwright, Locust, OWASP ZAP. CI en GitHub Actions.
 
-> Supuesto pendiente de confirmar: se eligió FastAPI porque no se sabe qué framework usa Apartaestudios. Si allá usan Django, cambiar a Django REST Framework.
+## Modelo de datos (13 tablas, PostgreSQL)
 
-## Modelo de datos (12 tablas, PostgreSQL)
-
-IDs `UUID`, fechas con hora `TIMESTAMPTZ`.
+IDs `UUID`, fechas con hora `TIMESTAMPTZ`. Además de las columnas listadas, todas las tablas salvo `empresa` llevan `empresa_id`, con claves foráneas compuestas que impiden mezclar empresas.
 
 - `empresa`: id, nombre, codigo (UQ), idioma, plan, regla_revision (todo/muestra/riesgo), muestra_n, retencion_fotos_dias, creado_en
 - `usuario`: id, empresa_id, nombre_usuario, hash_clave, tipo_clave (contraseña/pin), rol (admin/supervisor/empleado), idioma, activo, intentos_fallidos, bloqueado_hasta, creado_en — UQ (empresa_id, nombre_usuario)
@@ -52,23 +50,24 @@ IDs `UUID`, fechas con hora `TIMESTAMPTZ`.
 - `supervisor_propiedad`: usuario_id, propiedad_id (PK compuesta)
 - `habitacion`: id, propiedad_id, nombre, tipo, fotos_min_entrada, fotos_min_salida, activa — UQ (propiedad_id, nombre)
 - `asignacion`: id, habitacion_id, empleado_id, asignado_por, fecha, prioridad, hora_limite
-- `limpieza`: id, asignacion_id, tipo (normal/correccion), limpieza_origen_id, inicio, fin, duracion_neta_seg, estado_trabajo, requiere_revision, estado_revision
+- `limpieza`: id, asignacion_id, empleado_id, tipo (normal/correccion), limpieza_origen_id, inicio, fin, duracion_neta_seg, estado_trabajo (pendiente/en_curso/enviada), requiere_revision, estado_revision. Nace pendiente al asignar.
 - `pausa`: id, limpieza_id, motivo, inicio, fin
 - `revision`: id, limpieza_id (UQ), supervisor_id, resultado, comentario, revisado_en
 - `dano`: id, limpieza_id, categoria, gravedad, nota, estado (abierto/en_reparacion/resuelto), creado_en
 - `dano_historial`: id, dano_id, usuario_id, estado_anterior, estado_nuevo, cambiado_en
 - `foto`: id, limpieza_id, dano_id (nullable), momento (entrada/salida/dano), url, tomada_en, tamano_kb
+- `refresh_token`: id, usuario_id, hash_token (UQ), expira_en, revocado_en, creado_en
 
 En el código, `Usuario` es clase abstracta con `Empleado`, `Supervisor` y `Administrador` (herencia de tabla única por `rol`). Ver el diagrama de clases en la especificación.
 
 ## Endpoints principales previstos
 
-`/auth/login`, `/asignaciones/hoy`, `/limpiezas/{id}/iniciar`, `/limpiezas/{id}/pausas`, `/limpiezas/{id}/danos`, `/limpiezas/{id}/finalizar`, `/revisiones`, `/reportes`.
+`/auth/login`, `/asignaciones/hoy`, `/limpiezas/{id}/iniciar`, `/limpiezas/{id}/pausas`, `/limpiezas/{id}/danos`, `/limpiezas/{id}/finalizar`, `/revisiones`, `/reportes`. La lista completa está en `/docs`.
 
 ## Alcance del MVP
 
-Dentro: login, propiedades/habitaciones, asignación diaria, fotos + cronómetro, daños, revisión asíncrona, panel del admin, 3 idiomas, offline, reportes de tiempos y daños.
-Fuera (v2/v3): checklist por habitación, notificaciones push, exportar Excel/PDF, sincronizar calendarios Airbnb/Booking, inventario, pagos, IA de comparación de fotos, integración PMS, apps nativas.
+Dentro: login, propiedades/habitaciones, asignación diaria, fotos + cronómetro, daños, revisión asíncrona, panel del admin, 3 idiomas, offline, reportes de tiempos y daños, exportar reportes a PDF.
+Fuera (v2/v3): checklist por habitación, notificaciones push, exportar a Excel, sincronizar calendarios Airbnb/Booking, inventario, pagos, IA de comparación de fotos, integración PMS, apps nativas.
 
 Requisitos (RF-01…RF-18, RNF-01…RNF-11), historias de usuario (HU-01…HU-16), casos de uso (CU-01…CU-15) y casos de prueba (CP-01…CP-26) están numerados en la especificación; usar esos IDs en commits, issues y pruebas.
 
@@ -78,7 +77,7 @@ Requisitos (RF-01…RF-18, RNF-01…RNF-11), historias de usuario (HU-01…HU-16
 2. **Backend, API y BD** — FastAPI + Docker, modelos SQLAlchemy, migraciones Alembic, auth, servicios de limpieza/revisión/daños, subida de fotos.
 3. **Frontend** — React + Vite, vistas por rol, cámara, cronómetro, offline, PWA, traducciones.
 4. **Pruebas** — ejecutar el plan de pruebas de la especificación.
-5. **Despliegue** — frontend en Vercel/Netlify, API en Docker (Render, Railway o VPS), HTTPS obligatorio (la cámara del navegador lo exige).
+5. **Despliegue** — AWS EC2 (Free Tier) con Docker Compose: `db` (PostgreSQL), `migrate` (Alembic), `api` (FastAPI) y `web` (Caddy: PWA, proxy `/api` y HTTPS automático). Guía en `docs/despliegue/`. HTTPS obligatorio (la cámara del navegador lo exige).
 
 ## Riesgo técnico a vigilar
 
