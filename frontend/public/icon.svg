@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0A1D4A" />
+      <stop offset="55%" stop-color="#1E4796" />
+      <stop offset="100%" stop-color="#2F6FD6" />
+    </linearGradient>
+    <linearGradient id="kGrad" x1="120" y1="112" x2="360" y2="400" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#2F6FD6" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)" />
+  <path
+    d="M128 122C128 112 136 104 146 104H178C194 104 206 116 206 132V238L128 310V122Z"
+    fill="url(#kGrad)"
+  />
+  <path
+    d="M136 334L278 122C285 111 297 104 310 104H356C366 104 371 116 364 124L214 274L136 334Z"
+    fill="#38BDF8"
+  />
+  <path
+    d="M136 366C166 292 230 250 286 276C322 293 348 344 378 394C383 402 377 412 368 412H316C303 412 291 405 284 394C256 346 226 322 188 342C166 353 151 372 142 388C136 398 131 379 136 366Z"
+    fill="url(#kGrad)"
+  />
+  <path
+    d="M376 196L388 228L420 240L388 252L376 284L364 252L332 240L364 228L376 196Z"
+    fill="#7DD3FC"
+  />
+</svg>

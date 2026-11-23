@@ -1,0 +1,176 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-primario-50: #eef4fc;
+  --color-primario-100: #d9e6fa;
+  --color-primario-200: #b8d0f5;
+  --color-primario-300: #89b2ee;
+  --color-primario-400: #558de3;
+  --color-primario-500: #2f6fd6;
+  --color-primario-600: #2458b8;
+  --color-primario-700: #1e4796;
+  --color-primario-800: #1d3c7a;
+  --color-primario-900: #1d3465;
+
+  --font-sans:
+    system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+    monospace;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    color: #0f172a;
+    background-color: #f8fafc;
+    color-scheme: light;
+    font-size: 16px;
+  }
+
+  html.dark {
+    color: #f1f5f9;
+    background-color: #0b1120;
+    color-scheme: dark;
+  }
+
+  html.klyvon-fuente-normal {
+    font-size: 16px;
+  }
+
+  html.klyvon-fuente-grande {
+    font-size: 18px;
+  }
+
+  html.klyvon-fuente-muy-grande {
+    font-size: 20px;
+  }
+
+  *:focus-visible {
+    outline: 2px solid #2f6fd6;
+    outline-offset: 2px;
+  }
+
+  html.dark *:focus-visible {
+    outline-color: #60a5fa;
+  }
+
+  html.klyvon-alto-contraste *:focus-visible {
+    outline: 3px solid #1d4ed8;
+    outline-offset: 3px;
+  }
+
+  html.dark.klyvon-alto-contraste *:focus-visible {
+    outline: 3px solid #93c5fd;
+    outline-offset: 3px;
+  }
+
+  html.klyvon-alto-contraste {
+    color: #020617;
+    background-color: #ffffff;
+  }
+
+  html.dark.klyvon-alto-contraste {
+    color: #ffffff;
+    background-color: #020617;
+  }
+
+  html.klyvon-alto-contraste button,
+  html.klyvon-alto-contraste input,
+  html.klyvon-alto-contraste select,
+  html.klyvon-alto-contraste textarea,
+  html.klyvon-alto-contraste section,
+  html.klyvon-alto-contraste [role='dialog'] > div {
+    border-width: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  html.klyvon-sin-animacion *,
+  html.klyvon-sin-animacion *::before,
+  html.klyvon-sin-animacion *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@keyframes klyvon-saludo {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg) scale(1);
+  }
+  12% {
+    transform: translateY(-4px) rotate(-4deg) scale(1.02);
+  }
+  24% {
+    transform: translateY(-6px) rotate(4deg) scale(1.02);
+  }
+  36% {
+    transform: translateY(-4px) rotate(-3deg) scale(1.01);
+  }
+  48% {
+    transform: translateY(0) rotate(0deg) scale(1);
+  }
+}
+
+@keyframes klyvon-mano {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  15% {
+    transform: rotate(-16deg);
+  }
+  30% {
+    transform: rotate(10deg);
+  }
+  45% {
+    transform: rotate(-14deg);
+  }
+  60% {
+    transform: rotate(0deg);
+  }
+}
+
+@layer utilities {
+  .klyvon-canvas-claro {
+    background-color: #ffffff;
+    background-image:
+      radial-gradient(circle at 20% 25%, rgba(47, 111, 214, 0.08) 0%, transparent 55%),
+      radial-gradient(circle at 85% 80%, rgba(14, 165, 233, 0.09) 0%, transparent 50%),
+      linear-gradient(155deg, #ffffff 0%, #f8fafc 58%, #eef4fc 100%);
+  }
+
+  .dark .klyvon-canvas-claro {
+    background-color: #0f172a;
+    background-image:
+      radial-gradient(circle at 20% 25%, rgba(56, 189, 248, 0.12) 0%, transparent 55%),
+      radial-gradient(circle at 85% 80%, rgba(47, 111, 214, 0.14) 0%, transparent 50%),
+      linear-gradient(155deg, #0f172a 0%, #111c36 58%, #0b1120 100%);
+  }
+
+  .klyvon-saludo {
+    transform-origin: 50% 85%;
+    animation: klyvon-saludo 3.4s ease-in-out infinite;
+    will-change: transform;
+  }
+
+  .klyvon-mano-saludo {
+    transform-origin: 78% 72%;
+    animation: klyvon-mano 2.6s ease-in-out infinite;
+  }
+}

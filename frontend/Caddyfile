@@ -1,0 +1,45 @@
+# DOMINIO viene de docker-compose:
+#   - En local: http://localhost (sin TLS; el navegador trata localhost como contexto seguro).
+#   - En EC2: un nombre real o <ip-con-guiones>.sslip.io; Caddy saca y renueva el certificado
+#     de Let's Encrypt solo. HTTPS es obligatorio: sin él no abre la cámara ni se guarda la
+#     cookie de sesión (Secure).
+{
+	admin 127.0.0.1:2019
+}
+
+{$DOMINIO:http://localhost} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "no-referrer"
+		Permissions-Policy "camera=(self), microphone=(), geolocation=(), payment=()"
+		Cross-Origin-Opener-Policy "same-origin"
+		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; media-src 'self' blob:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+		-Server
+	}
+
+	# La API vive sin prefijo; el frontend la llama en /api (igual que el proxy de Vite).
+	handle_path /api/* {
+		reverse_proxy api:8000 {
+			header_down Set-Cookie "Path=/auth" "Path=/api/auth"
+		}
+	}
+
+	# URLs firmadas de las fotos (las valida la API).
+	handle /fotos/* {
+		reverse_proxy api:8000
+	}
+
+	handle {
+		root * /srv
+		@sinCache path /index.html /sw.js /registerSW.js /manifest.webmanifest
+		header @sinCache Cache-Control "no-cache"
+		@inmutables path /assets/*
+		header @inmutables Cache-Control "public, max-age=31536000, immutable"
+		try_files {path} /index.html
+		file_server
+	}
+}
