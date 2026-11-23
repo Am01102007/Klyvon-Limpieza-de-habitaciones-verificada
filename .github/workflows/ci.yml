@@ -50,7 +50,7 @@ jobs:
         working-directory: frontend
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           version: "12.21.0"
       - uses: actions/setup-node@v4
@@ -93,7 +93,7 @@ jobs:
         run: docker compose up -d --build --wait
       - name: Datos de demostración
         run: docker compose run --rm migrate python -m scripts.semilla
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           version: "12.21.0"
       - uses: actions/setup-node@v4
