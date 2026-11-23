@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Etapa 1: instala las dependencias de producción con uv, sin herramientas de desarrollo.
-FROM python:3.14-slim AS dependencias
+FROM python:3.15-slim AS dependencias
 COPY --from=ghcr.io/astral-sh/uv:0.12.17 /uv /usr/local/bin/uv
 ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
@@ -12,7 +12,7 @@ COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project
 
 # Etapa 2: imagen final sin uv ni compiladores, con usuario sin privilegios.
-FROM python:3.14-slim
+FROM python:3.15-slim
 ENV PATH=/opt/venv/bin:$PATH \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
