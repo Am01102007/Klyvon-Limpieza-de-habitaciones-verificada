@@ -1,0 +1,61 @@
+[project]
+name = "limpieza-backend"
+version = "0.1.0"
+description = "API de la app de limpieza de habitaciones"
+requires-python = ">=3.14,<3.15"
+dependencies = [
+    "alembic>=1.20.1",
+    "apscheduler>=3.11.3,<4",
+    "argon2-cffi>=25.1.0",
+    "fastapi>=0.162.0",
+    "pillow>=13.0.0",
+    "psycopg[binary]>=3.3.8",
+    "pydantic-settings>=2.16.2",
+    "pyjwt>=2.15.1",
+    "python-multipart>=0.0.33",
+    "reportlab>=4.0",
+    "slowapi>=0.1.10",
+    "sqlalchemy>=2.1.8",
+    "tzdata>=2026.6",
+    "uvicorn>=0.54.0",
+]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "mypy>=2.4.1",
+    "pytest>=9.2.0",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.17.3",
+]
+
+[tool.uv]
+package = false
+link-mode = "copy"
+
+[tool.ruff]
+target-version = "py314"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "B", "UP", "S", "C4", "SIM", "RUF"]
+# Los nombres del dominio van en espaÃ±ol: `ErrorDominio`, no `DomainError`.
+ignore = ["N818"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S311"]
+
+[tool.mypy]
+strict = true
+python_version = "3.14"
+plugins = ["pydantic.mypy"]
+explicit_package_bases = true
+
+[[tool.mypy.overrides]]
+module = ["slowapi.*", "apscheduler.*", "reportlab.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "--strict-markers -p no:cacheprovider"
