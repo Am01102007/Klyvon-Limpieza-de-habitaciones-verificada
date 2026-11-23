@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Etapa 1: compila la PWA (Vite + service worker de Workbox).
-FROM node:24-alpine AS construccion
+FROM node:26-alpine AS construccion
 RUN npm install --global pnpm@12.21.0
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
